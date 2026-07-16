@@ -271,9 +271,11 @@
 					 * active-high level. REQUIRES the irq-meson-gpio IRQCHIP_SKIP_SET_WAKE
 					 * kernel patch; without it brcmfmac enable_irq_wake() aborts with -6.
 					 * interrupt-parent 0x24 = interrupt-controller@9880 (meson8-gpio-intc).
+					 * hwirq 0x85 = 133: GPIOX bank irq_first(112)+21 per pinctrl-meson8.c
+					 * BANK("X", GPIOX_0, GPIOX_21, 112, 133, ...). NOT 21 (that is GPIOZ_7).
 					 */
 					interrupt-parent = <0x24>;
-					interrupts = <0x15 0x04>;
+					interrupts = <0x85 0x04>;
 					interrupt-names = "host-wake";
 				};
 			};
