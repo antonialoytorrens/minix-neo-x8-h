@@ -1,1 +1,4 @@
 https://github.com/hexdump0815/linux-mainline-and-mali-generic-stable-kernel/blob/6.1.128-stb-m8x%2B/readme.m8x
+
+TODO:
+Apply xdl-mainline-patches-meson-mx-integration-6.20-20251223.patch (obtained comparing to his master branch): https://github.com/torvalds/linux/compare/master...xdarklight:linux:meson-mx-integration-6.20-20251223.patch onto 6.18.38 mainline kernel
