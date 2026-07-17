@@ -1,0 +1,16 @@
+Skip set_wake on the meson GPIO interrupt controller.
+
+The meson GPIO irqchip has no wakeup configuration of its own, so it
+advertises IRQCHIP_SKIP_SET_WAKE and lets the parent handle wakeup.
+
+--- a/drivers/irqchip/irq-meson-gpio.c
++++ b/drivers/irqchip/irq-meson-gpio.c
+@@ -462,7 +462,7 @@
+ #ifdef CONFIG_SMP
+ 	.irq_set_affinity	= irq_chip_set_affinity_parent,
+ #endif
+-	.flags			= IRQCHIP_SET_TYPE_MASKED,
++	.flags			= IRQCHIP_SET_TYPE_MASKED | IRQCHIP_SKIP_SET_WAKE,
+ };
+ 
+ static int meson_gpio_irq_domain_translate(struct irq_domain *domain,
