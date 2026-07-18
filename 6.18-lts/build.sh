@@ -1,4 +1,6 @@
 #!/bin/bash
+set -eu -o pipefail
+
 KERNEL_VERSION="6.18.38"
 
 cd "$(dirname $0)"
@@ -13,10 +15,11 @@ fi
 cd linux-${KERNEL_VERSION}
 
 for f in ../patch/*; do
-	patch -p1 < "${f}"
+	patch -p1 -F0 -N -f < "${f}"
+	#patch -p1 < "${f}"
 done
 
-cp ../config.armhf .config
+cp ../config.armhf.no-lima .config
 make ARCH="arm" CROSS_COMPILE="/usr/bin/arm-linux-gnueabihf-" olddefconfig && \
 make -j$(nproc) ARCH="arm" CROSS_COMPILE="/usr/bin/arm-linux-gnueabihf-" && \
 install -m 644 .config ../pkg/boot/config-${KERNEL_VERSION}-stb-m8x && \

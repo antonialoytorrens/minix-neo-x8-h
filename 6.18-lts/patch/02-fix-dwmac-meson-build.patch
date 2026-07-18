@@ -1,0 +1,91 @@
+Fix build of dwmac-meson.c after 01-xdarklight-linux-meson-mx-integration
+
+Patch 01 backports dwmac-meson.c changes from a newer/net-next stmmac
+core (struct-device-based plat_dat->init/exit, plat_dat->set_phy_intf_sel,
+PHY_INTF_SEL_RMII) that don't exist in vanilla 6.18.38:
+
+  drivers/net/ethernet/stmicro/stmmac/dwmac-meson.c:65:29: error:
+  'PHY_INTF_SEL_RMII' undeclared
+  drivers/net/ethernet/stmicro/stmmac/dwmac-meson.c:127:24: error:
+  assignment to 'int (*)(struct platform_device *, void *)' from
+  incompatible pointer type 'int (*)(struct device *, void *)'
+  drivers/net/ethernet/stmicro/stmmac/dwmac-meson.c:129:17: error:
+  'struct plat_stmmacenet_data' has no member named 'set_phy_intf_sel'
+
+stmmac_platform.c still calls plat->init(pdev, plat->bsp_priv) with a
+struct platform_device *, and struct plat_stmmacenet_data has no
+set_phy_intf_sel member in this tree. Adapt the driver to the actual
+6.18.38 core API instead of backporting that core refactor:
+
+ - restore the meson6_dwmac_init/exit(struct platform_device *, void *)
+   signatures
+ - drop meson6_dwmac_set_phy_intf_sel(), PREG_ETHERNET_ADDR0_PHY_INTF_SEL
+   and the plat_dat->set_phy_intf_sel assignment (every board using
+   amlogic,meson6-dwmac sets phy-mode = "rmii", and the pristine driver
+   never touched this register field either - it's left to the
+   bootloader, same as before)
+
+The ethernet-clock management and DIV_EN/endianness init added by
+patch 01 are kept as-is.
+
+--- a/drivers/net/ethernet/stmicro/stmmac/dwmac-meson.c
++++ b/drivers/net/ethernet/stmicro/stmmac/dwmac-meson.c
+@@ -5,7 +5,6 @@
+  * Copyright (C) 2014 Beniamino Galvani <b.galvani@gmail.com>
+  */
+
+-#include <linux/bitfield.h>
+ #include <linux/clk.h>
+ #include <linux/device.h>
+ #include <linux/ethtool.h>
+@@ -28,8 +27,6 @@
+ /* 0x0 = same order, 0x1: unknown */
+ #define PREG_ETHERNET_ADDR0_DESC_ENDIANNESS		BIT(3)
+
+-#define PREG_ETHERNET_ADDR0_PHY_INTF_SEL		GENMASK(6, 4)
+-
+ struct meson_dwmac {
+ 	struct device	*dev;
+ 	void __iomem	*reg;
+@@ -57,23 +54,7 @@
+ 	return 0;
+ }
+
+-static int meson6_dwmac_set_phy_intf_sel(void *priv, u8 phy_intf_sel)
+-{
+-	struct meson_dwmac *dwmac = priv;
+-	u32 val;
+-
+-	if (phy_intf_sel != PHY_INTF_SEL_RMII)
+-		return -EINVAL;
+-
+-	val = readl(dwmac->reg);
+-	val &= ~PREG_ETHERNET_ADDR0_PHY_INTF_SEL;
+-	val |= FIELD_PREP(PREG_ETHERNET_ADDR0_PHY_INTF_SEL, phy_intf_sel);
+-	writel(val, dwmac->reg);
+-
+-	return 0;
+-}
+-
+-static int meson6_dwmac_init(struct device *dev, void *priv)
++static int meson6_dwmac_init(struct platform_device *pdev, void *priv)
+ {
+ 	struct meson_dwmac *dwmac = priv;
+ 	u32 val;
+@@ -87,7 +68,7 @@
+ 	return 0;
+ }
+
+-static void meson6_dwmac_exit(struct device *dev, void *priv)
++static void meson6_dwmac_exit(struct platform_device *pdev, void *priv)
+ {
+ 	struct meson_dwmac *dwmac = priv;
+
+@@ -126,7 +107,6 @@
+ 	plat_dat->bsp_priv = dwmac;
+ 	plat_dat->init = meson6_dwmac_init;
+ 	plat_dat->exit = meson6_dwmac_exit;
+-	plat_dat->set_phy_intf_sel = meson6_dwmac_set_phy_intf_sel;
+ 	plat_dat->set_clk_tx_rate = meson6_dwmac_set_clk_tx_rate;
+
+ 	return stmmac_dvr_probe(&pdev->dev, plat_dat, &stmmac_res);
