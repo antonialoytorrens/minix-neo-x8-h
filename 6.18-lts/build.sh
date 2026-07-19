@@ -14,9 +14,8 @@ fi
 
 cd linux-${KERNEL_VERSION}
 
-for f in ../patch/*; do
+for f in ../linux-m8x/debian-latest/debian/patches/*.patch; do
 	patch -p1 -F0 -N -f < "${f}"
-	#patch -p1 < "${f}"
 done
 
 cp ../config.armhf.no-lima .config

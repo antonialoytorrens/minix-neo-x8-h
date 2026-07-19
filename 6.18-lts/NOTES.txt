@@ -1,7 +1,8 @@
 this boots without initrd. please copy the template-noinitrd/* into the BOOT partition (BOOTPART).
 
-patch/001-*.patch through patch/098-*.patch are adapted from xdarklight's
-linux fork, branch "meson-mx-integration-6.20-20251223":
+linux-m8x/debian-latest/debian/patches/001-*.patch through 098-*.patch are
+adapted from xdarklight's linux fork, branch
+"meson-mx-integration-6.20-20251223":
 https://github.com/xdarklight/linux/blob/meson-mx-integration-6.20-20251223/
 
 They were originally carried as a single squashed file
@@ -11,5 +12,10 @@ order, for easier review and bisection. Some of them are marked by
 upstream as WiP, HACK, TODO or DO NOT USE (visible in the filename
 suffix) -- review those before relying on them.
 
-patch/099-*.patch onward are local fixes/additions on top of the
-xdarklight-derived series, adapting it to vanilla kernel 6.18.38.
+linux-m8x/debian-latest/debian/patches/099-*.patch onward are local
+fixes/additions on top of the xdarklight-derived series, adapting it to
+vanilla kernel 6.18.38.
+
+Patches are tracked in debian/patches/series (quilt format) and are
+applied both by build.sh (manual build) and by dpkg-source/dpkg-buildpackage
+when building the linux-m8x Debian package from linux-m8x/debian-latest.

@@ -1,0 +1,3 @@
+This goes into boot partition (BOOTPART).
+Vanilla image needs the template folder, with uInitrd: https://github.com/velvet-os/imagebuilder/releases/tag/230910-01 , https://github.com/velvet-os/imagebuilder/releases/download/230910-01/amlogic_m8-armv7l-bookworm.img.gz
+However, my test kernels do not. use the template-noinitrd in this case.
