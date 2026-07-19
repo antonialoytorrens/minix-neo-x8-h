@@ -1,0 +1,31 @@
+From 720d679cbbc95a928b4fd6f77d3b856ae0979976 Mon Sep 17 00:00:00 2001
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Date: Sat, 25 Apr 2020 22:16:15 +0200
+Subject: [PATCH 44/98] dt-bindings: display: meson-vpu: add support for
+ Meson8/8b/8m2 - WiP
+
+WiP
+
+Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+---
+ .../devicetree/bindings/display/amlogic,meson-vpu.yaml        | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml b/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
+index 1a2d69bca56382..c22bccab2eac8d 100644
+--- a/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
++++ b/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
+@@ -65,8 +65,12 @@ properties:
+           - const: amlogic,meson-gx-vpu
+       - enum:
+           - amlogic,meson-g12a-vpu # G12A (S905X2, S905Y2, S905D2)
++          - amlogic,meson8-vpu
++          - amlogic,meson8b-vpu
++          - amlogic,meson8m2-vpu
+ 
+   reg:
++    minItems: 1
+     maxItems: 2
+ 
+   reg-names:
+

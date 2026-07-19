@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Date: Sat, 18 Dec 2021 23:33:03 +0100
+Subject: [PATCH] ARM: dts: meson8b: Add more L2 (PL310) cache properties
+
+Add more L2 cache properties which are used by the 3.10 vendor kernel
+but have not made it upstream yet.
+
+Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+---
+ arch/arm/boot/dts/meson8b.dtsi | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/arch/arm/boot/dts/meson8b.dtsi b/arch/arm/boot/dts/meson8b.dtsi
+index d3e0f08590..648a2e2627 100644
+--- a/arch/arm/boot/dts/meson8b.dtsi
++++ b/arch/arm/boot/dts/meson8b.dtsi
+@@ -643,6 +643,9 @@ &L2 {
+ 	arm,filter-ranges = <0x100000 0xc0000000>;
+ 	prefetch-data = <1>;
+ 	prefetch-instr = <1>;
++	arm,prefetch-offset = <7>;
++	arm,double-linefill = <1>;
++	arm,prefetch-drop = <1>;
+ 	arm,shared-override;
+ };
+ 

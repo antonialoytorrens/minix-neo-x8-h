@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Date: Sat, 28 Dec 2019 01:43:18 +0100
+Subject: [PATCH] dt-bindings: vendor-prefixes: Add prefix for "mxtronics"
+
+Beijing Times Minxin Technology Co., Ltd. [0] offers various integrated
+circuits such as (but not limited to):
+- Beidou / GPS / Glonass multi-module basebands
+- Audio D/A converters
+- USB to serial converters
+- 4bit and 8bit MCUs
+
+[0] http://www.mxtronics.com/
+
+Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+---
+ Documentation/devicetree/bindings/vendor-prefixes.yaml | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.yaml b/Documentation/devicetree/bindings/vendor-prefixes.yaml
+index f955db429f..e7856b8301 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.yaml
++++ b/Documentation/devicetree/bindings/vendor-prefixes.yaml
+@@ -865,6 +865,8 @@ patternProperties:
+     deprecated: true
+   "^mxicy,.*":
+     description: Macronix International Co., Ltd.
++  "^mxtronics,.*":
++    description: Beijing Times Minxin Technology Co., Ltd.
+   "^myir,.*":
+     description: MYIR Tech Limited
+   "^national,.*":

@@ -1,0 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Date: Sat, 19 Dec 2020 18:19:31 +0100
+Subject: [PATCH] ARM: dts: meson8: add the SDXC_A pins
+
+Add the pins for the SDHC MMC controller which connect to the SDIO wifi
+on some boards.
+
+Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+---
+ arch/arm/boot/dts/meson8.dtsi | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/arch/arm/boot/dts/meson8.dtsi b/arch/arm/boot/dts/meson8.dtsi
+index 23dfaa0e12..67c0624b72 100644
+--- a/arch/arm/boot/dts/meson8.dtsi
++++ b/arch/arm/boot/dts/meson8.dtsi
+@@ -506,6 +506,15 @@ mux {
+ 			};
+ 		};
+ 
++		sdxc_a_pins: sdxc-a {
++			mux {
++				groups = "sdxc_d0_a", "sdxc_d13_a",
++					 "sdxc_clk_a", "sdxc_cmd_a";
++				function = "sdxc_a";
++				bias-pull-up;
++			};
++		};
++
+ 		sdxc_b_pins: sdxc-b {
+ 			mux {
+ 				groups = "sdxc_d0_b", "sdxc_d13_b",

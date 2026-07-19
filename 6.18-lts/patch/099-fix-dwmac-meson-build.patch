@@ -1,6 +1,6 @@
-Fix build of dwmac-meson.c after 01-xdarklight-linux-meson-mx-integration
+Fix build of dwmac-meson.c after the xdarklight-derived patches (001-098)
 
-Patch 01 backports dwmac-meson.c changes from a newer/net-next stmmac
+The xdarklight-derived patches backport dwmac-meson.c changes from a newer/net-next stmmac
 core (struct-device-based plat_dat->init/exit, plat_dat->set_phy_intf_sel,
 PHY_INTF_SEL_RMII) that don't exist in vanilla 6.18.38:
 
@@ -26,7 +26,7 @@ set_phy_intf_sel member in this tree. Adapt the driver to the actual
    bootloader, same as before)
 
 The ethernet-clock management and DIV_EN/endianness init added by
-patch 01 are kept as-is.
+the xdarklight-derived patches are kept as-is.
 
 --- a/drivers/net/ethernet/stmicro/stmmac/dwmac-meson.c
 +++ b/drivers/net/ethernet/stmicro/stmmac/dwmac-meson.c
