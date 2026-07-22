@@ -82,7 +82,7 @@ diff --git a/drivers/clk/meson/meson8b.c b/drivers/clk/meson/meson8b.c
  };
  
  static struct clk_hw *meson8m2_hw_clks[] = {
-@@ -3525,6 +3545,7 @@ static struct clk_hw *meson8m2_hw_clks[] = {
+@@ -3410,4 +3507,5 @@ static struct clk_hw *meson8m2_hw_clks[] = {
  	[CLKID_CTS_I958]	    = &meson8b_cts_i958.hw,
  	[CLKID_VID_PLL_LVDS_EN]	    = &meson8b_vid_pll_lvds_en.hw,
  	[CLKID_HDMI_PLL_DCO_IN]	    = &hdmi_pll_dco_in.hw,
