@@ -1,5 +1,3 @@
-this boots without initrd. please copy the template-noinitrd/* into the BOOT partition (BOOTPART).
-
 linux-m8x/debian-latest/debian/patches/001-*.patch through 098-*.patch are
 adapted from xdarklight's linux fork, branch
 "meson-mx-integration-6.20-20251223":

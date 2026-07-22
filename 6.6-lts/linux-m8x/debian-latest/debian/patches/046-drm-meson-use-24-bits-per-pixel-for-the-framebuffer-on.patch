@@ -1,0 +1,62 @@
+From 46a0df187a7333b9f3c9fe13f501586e4fad9165 Mon Sep 17 00:00:00 2001
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Date: Sun, 26 Apr 2020 00:00:09 +0200
+Subject: [PATCH 46/98] drm/meson: Use 24 bits per pixel for the framebuffer on
+ Meson8/8b/8m2
+
+All SoC generations before GXBB don't have a way to configure the
+alpha value for DRM_FORMAT_XRGB8888 and DRM_FORMAT_XBGR8888. These
+formats have an X component instead of an alpha component. On
+Meson8/8b/8m2 there is no way to configure the alpha value to use
+instead of the X component. This results in the fact that the
+formats with X component are only supported on GXBB and newer. Use
+DRM_FORMAT_RGB888 on older SoCs to get a working framebuffer console.
+
+Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+
+[dts: rebased onto 6.6.144 for 6.6-lts - drm_client_setup()/
+ drm_client_setup_with_fourcc() don't exist at this baseline (later DRM
+ client-setup API refactor); meson_drm_client_setup() calls the older
+ drm_fbdev_dma_setup(dev, bpp) with 24 or 32 bpp instead of picking a fourcc
+ format, same SoC-detection logic]
+---
+diff --git a/drivers/gpu/drm/meson/meson_drv.c b/drivers/gpu/drm/meson/meson_drv.c
+index b56aeaa43..d1c0ef8d7 100644
+--- a/drivers/gpu/drm/meson/meson_drv.c
++++ b/drivers/gpu/drm/meson/meson_drv.c
+@@ -159,6 +159,26 @@ static void meson_vpu_init(struct meson_drm *priv)
+ 	writel_relaxed(value, priv->io_base + _REG(VPU_WRARB_MODE_L2C1));
+ }
+ 
++static void meson_drm_client_setup(struct meson_drm *priv)
++{
++	/*
++	 * All SoC generations before GXBB don't have a way to configure the
++	 * alpha value for a 32-bit XRGB8888 framebuffer. These formats have
++	 * an X component instead of an alpha component. On Meson8/8b/8m2
++	 * there is no way to configure the alpha value to use instead of the
++	 * X component. This results in the fact that the formats with X
++	 * component are only supported on GXBB and newer. Use a 24-bit
++	 * RGB888 framebuffer on older SoCs to get a working framebuffer
++	 * console.
++	 */
++	if (meson_vpu_is_compatible(priv, VPU_COMPATIBLE_M8) ||
++	    meson_vpu_is_compatible(priv, VPU_COMPATIBLE_M8B) ||
++	    meson_vpu_is_compatible(priv, VPU_COMPATIBLE_M8M2))
++		drm_fbdev_dma_setup(priv->drm, 24);
++	else
++		drm_fbdev_dma_setup(priv->drm, 32);
++}
++
+ struct meson_drm_soc_attr {
+ 	struct meson_drm_soc_limits limits;
+ 	const struct soc_device_attribute *attrs;
+@@ -351,7 +371,7 @@ static int meson_drv_bind_master(struct device *dev, bool has_components)
+ 	if (ret)
+ 		goto uninstall_irq;
+ 
+-	drm_fbdev_dma_setup(drm, 32);
++	meson_drm_client_setup(priv);
+ 
+ 	return 0;
+ 

@@ -1,0 +1,79 @@
+From 467ebba2b990f61aeeecdcb373d20f0feaad4cf4 Mon Sep 17 00:00:00 2001
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Date: Mon, 22 Dec 2025 02:56:57 +0100
+Subject: [PATCH 97/98] dt-bindings: net: icplus,ip101ag: Describe the clock
+ input/output
+
+The IP101A/G PHYs support three types of clock inputs:
+- 25MHz crystal
+- 25MHz clock
+- 50MHz RMII reference clock
+
+When supplied with a 25MHz clock input the PHYs can generate a 50MHz
+RMII reference clock output called "C50M_O".
+
+Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+---
+ .../bindings/net/icplus,ip101ag.yaml          | 36 +++++++++++++++++--
+ 1 file changed, 33 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/net/icplus,ip101ag.yaml b/Documentation/devicetree/bindings/net/icplus,ip101ag.yaml
+index 2a4804e6e1bf5b..387bb065299c6a 100644
+--- a/Documentation/devicetree/bindings/net/icplus,ip101ag.yaml
++++ b/Documentation/devicetree/bindings/net/icplus,ip101ag.yaml
+@@ -26,14 +26,34 @@ description: |
+ 
+   All of them share the same PHY ID.
+ 
+-allOf:
+-  - $ref: ethernet-phy.yaml#
+-
+ properties:
+   compatible:
+     enum:
+       - ethernet-phy-id0243.0c54
+ 
++  clocks:
++    maxItems: 1
++    description:
++      25MHz (crystal or oscillator) or a 50MHz RMII REF_CLK input
++
++  clock-names:
++    oneOf:
++      - description: 25MHz crystal input
++        items:
++          - const: xtal
++      - description: 25MHz (single-ended) oscillator
++        items:
++          - const: 25mhz_oscillator
++      - description: 50MHz RMII reference clock
++        items:
++          - const: ref_clk
++
++  '#clock-cells':
++    const: 0
++    description: |
++      The PHY generates a 50MHz RMII REF_CLK (called C50M_O) output when
++      supplied with a 25MHz input.
++
+   icplus,select-rx-error:
+     type: boolean
+     description: |
+@@ -58,6 +78,16 @@ dependentSchemas:
+     properties:
+       icplus,select-rx-error: false
+ 
++allOf:
++  - $ref: ethernet-phy.yaml#
++  - if:
++      properties:
++        clock-names:
++          contains:
++            const: ref_clk
++      then:
++        '#clock-cells': false
++
+ unevaluatedProperties: false
+ 
+ examples:
+

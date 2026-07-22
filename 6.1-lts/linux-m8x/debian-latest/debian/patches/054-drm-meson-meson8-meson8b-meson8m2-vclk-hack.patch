@@ -410,7 +410,7 @@ index dfe0c28a0f..7dcf155fff 100644
 +		if (target == MESON_VCLK_TARGET_CVBS)
 +			phy_freq = 1296000;
 +
-+		dev_err(priv->dev, "%s(target: %u, phy: %u, dac: %u, venc: %u, hdmi_use_enci: %u)\n", __func__, target, phy_freq, dac_freq, venc_freq, hdmi_use_enci);
++		dev_err(priv->dev, "%s(target: %u, phy: %llu, dac: %llu, venc: %llu, hdmi_use_enci: %u)\n", __func__, target, phy_freq, dac_freq, venc_freq, hdmi_use_enci);
 +		meson_vclk_disable_ccf(priv);
 +		meson_vclk_enable_ccf(priv, target, hdmi_use_enci, phy_freq,
 +				      dac_freq, venc_freq);

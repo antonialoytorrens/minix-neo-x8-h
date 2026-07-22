@@ -1,0 +1,126 @@
+#!/usr/bin/make -f
+
+DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+DEB_PKGREL ?= $(shell dpkg-parsechangelog -S Version | cut -d- -f2)
+
+# Map Debian arch to kernel ARCH
+ifeq ($(DEB_HOST_ARCH),amd64)
+    KERNEL_ARCH := x86_64
+else ifeq ($(DEB_HOST_ARCH),i386)
+    KERNEL_ARCH := x86
+else ifeq ($(DEB_HOST_ARCH),arm64)
+    KERNEL_ARCH := arm64
+else ifeq ($(DEB_HOST_ARCH),armhf)
+    KERNEL_ARCH := arm
+else ifeq ($(DEB_HOST_ARCH),armel)
+    KERNEL_ARCH := arm
+else ifeq ($(DEB_HOST_ARCH),riscv64)
+    KERNEL_ARCH := riscv
+else ifeq ($(DEB_HOST_ARCH),ppc64el)
+    KERNEL_ARCH := powerpc
+else ifeq ($(DEB_HOST_ARCH),s390x)
+    KERNEL_ARCH := s390
+else
+    KERNEL_ARCH := $(DEB_HOST_ARCH)
+endif
+
+KERNEL_VERSION := $(shell $(MAKE) -s kernelversion)
+LOCALVERSION := -m8x-$(DEB_HOST_ARCH)
+KERNELRELEASE := $(KERNEL_VERSION)$(LOCALVERSION)
+NUMJOBS := $(shell nproc)
+
+# Load and entry address for legacy amlogic 32bit u-boot
+UIMAGE_ADDR := 0x00208000
+
+# Package names
+PKG_IMAGE := linux-image-$(KERNEL_VERSION)-m8x-$(DEB_HOST_ARCH)
+PKG_HEADERS := linux-headers-$(KERNEL_VERSION)-m8x-$(DEB_HOST_ARCH)
+PKG_LIBC := linux-libc-dev-m8x
+
+KMAKE := $(MAKE) \
+	ARCH=$(KERNEL_ARCH) \
+	KERNELRELEASE=$(KERNELRELEASE) \
+	LOCALVERSION=$(LOCALVERSION) \
+	KBUILD_BUILD_VERSION=$(DEB_PKGREL) \
+	-j$(NUMJOBS)
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=-all
+
+%:
+	dh $@
+
+# Patches are applied by dpkg-source (debian/patches/series)
+override_dh_auto_configure:
+	# Extra device trees, referenced by 102-add-extra-dtb-files.patch.
+	# Meson8/8b/8m2 dts files live under the amlogic/ subdirectory on
+	# this kernel version (moved there upstream since the 6.1 baseline).
+	cp $(CURDIR)/debian/dtb/meson8*.dts* arch/$(KERNEL_ARCH)/boot/dts/amlogic
+
+	install -Dm644 $(CURDIR)/debian/config.$(DEB_HOST_ARCH) $(CURDIR)/.config
+	$(KMAKE) olddefconfig
+
+override_dh_auto_build:
+	# dtbs is not part of the default target on arm
+	$(KMAKE) zImage dtbs modules
+
+override_dh_auto_install:
+	# Install kernel image and modules
+	$(KMAKE) INSTALL_MOD_PATH=$(CURDIR)/debian/$(PKG_IMAGE) modules_install
+
+	# Install kernel image to /boot
+	install -d debian/$(PKG_IMAGE)/boot
+	install -m 644 arch/$(KERNEL_ARCH)/boot/zImage debian/$(PKG_IMAGE)/boot/vmlinuz-$(KERNELRELEASE)
+	install -m 644 System.map debian/$(PKG_IMAGE)/boot/System.map-$(KERNELRELEASE)
+	install -m 644 .config debian/$(PKG_IMAGE)/boot/config-$(KERNELRELEASE)
+
+	# uImage for legacy amlogic u-boot
+	mkimage -A arm -O linux -T kernel -C none \
+		-a $(UIMAGE_ADDR) -e $(UIMAGE_ADDR) \
+		-n linux-$(KERNELRELEASE) \
+		-d arch/$(KERNEL_ARCH)/boot/zImage \
+		debian/$(PKG_IMAGE)/boot/uImage-$(KERNELRELEASE)
+
+	# Device trees
+	install -d debian/$(PKG_IMAGE)/boot/dtb-$(KERNELRELEASE)
+	install -m 644 arch/$(KERNEL_ARCH)/boot/dts/amlogic/meson8*.dtb \
+		debian/$(PKG_IMAGE)/boot/dtb-$(KERNELRELEASE)
+
+	# Remove firmware directory
+	rm -rf debian/$(PKG_IMAGE)/lib/firmware
+
+	# Install kernel headers
+	$(KMAKE) INSTALL_HDR_PATH=$(CURDIR)/debian/$(PKG_HEADERS)/usr headers_install
+
+	# Copy build tree for external modules
+	mkdir -p debian/$(PKG_HEADERS)/usr/src/linux-headers-$(KERNELRELEASE)
+	cp -a include debian/$(PKG_HEADERS)/usr/src/linux-headers-$(KERNELRELEASE)/
+	cp -a scripts debian/$(PKG_HEADERS)/usr/src/linux-headers-$(KERNELRELEASE)/
+	cp Makefile .config debian/$(PKG_HEADERS)/usr/src/linux-headers-$(KERNELRELEASE)/
+	#cp Module.symvers debian/$(PKG_HEADERS)/usr/src/linux-headers-$(KERNELRELEASE)/
+	mkdir -p debian/$(PKG_HEADERS)/usr/src/linux-headers-$(KERNELRELEASE)/arch/$(KERNEL_ARCH)
+	cp -a arch/$(KERNEL_ARCH)/include debian/$(PKG_HEADERS)/usr/src/linux-headers-$(KERNELRELEASE)/arch/$(KERNEL_ARCH)/
+	cp -a arch/$(KERNEL_ARCH)/Makefile debian/$(PKG_HEADERS)/usr/src/linux-headers-$(KERNELRELEASE)/arch/$(KERNEL_ARCH)/ || true
+
+	# Install libc-dev headers
+	$(KMAKE) INSTALL_HDR_PATH=$(CURDIR)/debian/$(PKG_LIBC)/usr headers_install
+
+override_dh_gencontrol:
+	dh_gencontrol -p$(PKG_IMAGE)
+	dh_gencontrol -p$(PKG_HEADERS)
+	dh_gencontrol -p$(PKG_LIBC)
+	dh_gencontrol -plinux-image-m8x
+	dh_gencontrol -plinux-headers-m8x
+
+override_dh_builddeb:
+	dh_builddeb -p$(PKG_IMAGE)
+	dh_builddeb -p$(PKG_HEADERS)
+	dh_builddeb -p$(PKG_LIBC)
+	dh_builddeb -plinux-image-m8x
+	dh_builddeb -plinux-headers-m8x
+
+override_dh_auto_clean:
+	rm -rf debian/linux-*
+	$(MAKE) clean
+
+clean:
+	dh $@

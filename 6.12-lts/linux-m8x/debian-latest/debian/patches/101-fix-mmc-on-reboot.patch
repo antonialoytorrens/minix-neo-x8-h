@@ -1,0 +1,74 @@
+Fix mmc on reboot: put the SDHC pins into sleep state on shutdown.
+
+From hexdump0815's stb-m8x recipe (misc.m8x/patches/fix-mmc-on-reboot.patch),
+originally regenerated as a canonical diff for kernel 6.1.51.
+
+Rebased again for kernel 6.20: platform_driver.remove callbacks were
+converted from int-returning to void-returning tree-wide, so
+meson_mx_sdhc_remove() can no longer propagate a pinctrl error via its
+return value. Instead the error is now logged via dev_err(), following
+this file's own existing dev_err(dev, "...") precedent (see the
+'pclk' clock enable failure message in meson_mx_sdhc_probe()). The
+functional behavior (select the sleep pinctrl state on remove/shutdown)
+is unchanged.
+
+Rebased once more for kernel 6.12.96: this kernel version still calls
+the void-returning remove callback ".remove_new" (the rename of
+remove_new back to plain "remove" happened later upstream), so the new
+.shutdown assignment was added next to .remove_new instead.
+
+--- a/drivers/mmc/host/meson-mx-sdhc-mmc.c
++++ b/drivers/mmc/host/meson-mx-sdhc-mmc.c
+@@ -12,6 +12,7 @@
+ #include <linux/iopoll.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
++#include <linux/pinctrl/consumer.h>
+ #include <linux/platform_device.h>
+ #include <linux/property.h>
+ #include <linux/regmap.h>
+@@ -861,15 +862,36 @@
+ 	return ret;
+ }
+ 
++static int meson_mx_sdhc_select_sleep_pins(struct device *dev)
++{
++	/*
++	 * Some vendor u-boot versions cannot read the SD card contents when
++	 * Linux used the SDHC pin controller for that card. Whenever requested
++	 * for a board (by specifying pinctrl-names = "sleep") we need to
++	 * switch to the SDIO pins on driver remove/system shutdown.
++	 */
++	return pinctrl_pm_select_sleep_state(dev);
++}
++
+ static void meson_mx_sdhc_remove(struct platform_device *pdev)
+ {
+ 	struct meson_mx_sdhc_host *host = platform_get_drvdata(pdev);
++	int ret;
+ 
+ 	mmc_remove_host(host->mmc);
+ 
+ 	meson_mx_sdhc_disable_clks(host->mmc);
+ 
+ 	clk_disable_unprepare(host->pclk);
++
++	ret = meson_mx_sdhc_select_sleep_pins(&pdev->dev);
++	if (ret)
++		dev_err(&pdev->dev, "Failed to select sleep pinctrl state\n");
++}
++
++static void meson_mx_sdhc_shutdown(struct platform_device *pdev)
++{
++	meson_mx_sdhc_select_sleep_pins(&pdev->dev);
+ }
+ 
+ static const struct meson_mx_sdhc_data meson_mx_sdhc_data_meson8 = {
+@@ -905,6 +927,7 @@
+ static struct platform_driver meson_mx_sdhc_driver = {
+ 	.probe   = meson_mx_sdhc_probe,
+ 	.remove_new = meson_mx_sdhc_remove,
++	.shutdown = meson_mx_sdhc_shutdown,
+ 	.driver  = {
+ 		.name = "meson-mx-sdhc",
+ 		.probe_type = PROBE_PREFER_ASYNCHRONOUS,

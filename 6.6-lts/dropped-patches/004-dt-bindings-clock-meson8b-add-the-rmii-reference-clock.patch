@@ -1,0 +1,38 @@
+From b5eacf56fc0793c4b86f61d93ac7d5794f19b7fe Mon Sep 17 00:00:00 2001
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Date: Fri, 1 May 2020 23:16:07 +0200
+Subject: [PATCH 04/98] dt-bindings: clock: meson8b: Add the RMII reference
+ clock input
+
+Amlogic Meson8 SoCs need an external 50MHz reference clock for RMII
+Ethernet to work. This is either provided by the Ethernet PHY (some of
+them implement a reference clock output) or an external oscillator. Add
+the documentation for this clock input on the SoC.
+
+Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+---
+ .../devicetree/bindings/clock/amlogic,meson8-clkc.yaml         | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/devicetree/bindings/clock/amlogic,meson8-clkc.yaml b/Documentation/devicetree/bindings/clock/amlogic,meson8-clkc.yaml
+index ab73d465417124..25e25c4dd0b806 100644
+--- a/Documentation/devicetree/bindings/clock/amlogic,meson8-clkc.yaml
++++ b/Documentation/devicetree/bindings/clock/amlogic,meson8-clkc.yaml
+@@ -21,7 +21,7 @@ properties:
+ 
+   clocks:
+     minItems: 2
+-    maxItems: 3
++    maxItems: 4
+ 
+   clock-names:
+     minItems: 2
+@@ -29,6 +29,7 @@ properties:
+       - const: xtal
+       - const: ddr_pll
+       - const: clk_32k
++      - const: rmii_clk
+ 
+   '#clock-cells':
+     const: 1
+

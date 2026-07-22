@@ -18,7 +18,7 @@ for f in ../linux-m8x/debian-latest/debian/patches/*.patch; do
 	patch -p1 -F0 -N -f < "${f}"
 done
 
-cp ../config.armhf.no-lima .config
+cp ../config.armhf .config
 make ARCH="arm" CROSS_COMPILE="/usr/bin/arm-linux-gnueabihf-" olddefconfig && \
 make -j$(nproc) ARCH="arm" CROSS_COMPILE="/usr/bin/arm-linux-gnueabihf-" && \
 install -m 644 .config ../pkg/boot/config-${KERNEL_VERSION}-stb-m8x && \

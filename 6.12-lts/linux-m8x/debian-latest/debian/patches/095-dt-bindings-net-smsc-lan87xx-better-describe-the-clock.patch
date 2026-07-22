@@ -1,0 +1,112 @@
+From f4f02e3327c9e51e3802400b695ad72d91cd2734 Mon Sep 17 00:00:00 2001
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Date: Mon, 22 Dec 2025 01:31:50 +0100
+Subject: [PATCH 95/98] dt-bindings: net: smsc,lan87xx: Better describe the
+ clock input/output
+
+All LAN87xx PHYs except the LAN911x Internal PHY support three types of
+clock inputs:
+- a 25MHz crystal
+- external 25MHz clock
+- a 50MHz RMII reference clock
+
+LAN8720 and LAN8742 PHYs can generate a 50MHz RMII reference clock
+output called "REFCLKO") when a 25MHz clock input (either a crystal or
+an external clock signal) is used.
+
+LAN911x only supports an external crystal input.
+
+Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+---
+ .../devicetree/bindings/net/smsc,lan87xx.yaml | 62 +++++++++++++++++--
+ 1 file changed, 57 insertions(+), 5 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/net/smsc,lan87xx.yaml b/Documentation/devicetree/bindings/net/smsc,lan87xx.yaml
+index 5c87a15f1eec7c..f6c4798516b16e 100644
+--- a/Documentation/devicetree/bindings/net/smsc,lan87xx.yaml
++++ b/Documentation/devicetree/bindings/net/smsc,lan87xx.yaml
+@@ -13,9 +13,6 @@ maintainers:
+ description:
+   Bindings for SMSC / Microchip LAN87xx PHYs
+ 
+-allOf:
+-  - $ref: ethernet-phy.yaml#
+-
+ properties:
+   compatible:
+     enum:
+@@ -32,9 +29,28 @@ properties:
+ 
+   clocks:
+     maxItems: 1
++
++  clock-names:
++    oneOf:
++      - description: 25MHz crystal input
++        items:
++          - const: xtal
++      - description: 25MHz single-ended crystal oscillator or another 25MHz clock
++        items:
++          - const: clkin
++      - description: 50MHz RMII reference clock
++        items:
++          - const: ref_clk
++      default: ref_clk
++
++  '#clock-cells':
++    const: 0
+     description: |
+-      The clock used as phy reference clock and is connected to phy
+-      pin XTAL1/CLKIN.
++      In RMII mode the PHY outputs a 50MHz RMII reference clock (REFCLKO)
++      when either an external 25MHz crystal or an external 25MHz clock
++      signal is used as input of the PHY.
++      The pad is shared with the nINT functionality, meaning the PHY cannot
++      output the interrupt signal when it generates the REFCLKO.
+ 
+   smsc,disable-energy-detect:
+     type: boolean
+@@ -42,6 +58,42 @@ properties:
+       If set, do not enable energy detect mode for the SMSC PHY.
+       default: enable energy detect mode
+ 
++allOf:
++  - $ref: ethernet-phy.yaml#
++  - if:
++      properties:
++        compatible:
++          contains:
++            enum:
++              - ethernet-phy-id0007.c0d0
++      then:
++        clock-names:
++          const: xtal
++          default: xtal
++  - if:
++      properties:
++        clock-names:
++          contains:
++            const: ref_clk
++      then:
++        '#clock-cells': false
++  - if:
++      required:
++        - interrupts
++      then:
++        '#clock-cells': false
++  - if:
++      not:
++        properties:
++          compatible:
++            contains:
++              enum:
++                - ethernet-phy-id0007.c0f1
++                - ethernet-phy-id0007.c130
++                - ethernet-phy-id0007.c131
++      then:
++        '#clock-cells': false
++
+ unevaluatedProperties: false
+ 
+ examples:
+

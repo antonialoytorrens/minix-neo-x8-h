@@ -112,7 +112,7 @@ index 5606a248f4..34afb1422c 100644
  
 +	ret = meson_cvbs_dac_phy_init(priv);
 +	if (ret)
-+		goto free_drm;
++		goto free_canvas_vd1_2;
 +
  	priv->vsync_irq = platform_get_irq(pdev, 0);
  
