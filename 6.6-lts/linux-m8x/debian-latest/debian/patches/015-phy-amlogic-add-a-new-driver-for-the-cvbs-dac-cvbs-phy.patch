@@ -20,6 +20,10 @@ platform_device_id's so the VPU driver can register the PHY as platform
 device if not provided via .dtb.
 
 Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+
+[dts: rebased onto 6.6.144 for 6.6-lts - devm_kmemdup_array() doesn't exist at
+ this baseline (this applied with 0 fuzz since it's a new file, but failed to
+ build); used devm_kmemdup() with the size pre-multiplied instead]
 ---
  drivers/phy/amlogic/Kconfig              |  10 +
  drivers/phy/amlogic/Makefile             |   1 +
@@ -339,9 +343,9 @@ index 00000000000000..a58699f4b577f5
 +					     "Failed to parse the \"reg\" property\n");
 +	}
 +
-+	reg_fields = devm_kmemdup_array(dev, phy_meson_cvbs_dac_reg_fields,
-+					MESON_CVBS_DAC_NUM_REGS,
-+					sizeof(*reg_fields), GFP_KERNEL);
++	reg_fields = devm_kmemdup(dev, phy_meson_cvbs_dac_reg_fields,
++				 MESON_CVBS_DAC_NUM_REGS * sizeof(*reg_fields),
++				 GFP_KERNEL);
 +	if (!reg_fields)
 +		return -ENOMEM;
 +
