@@ -1,0 +1,43 @@
+diff --git a/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml b/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
+index 6655a93b1874..bbc58c8bdfc2 100644
+--- a/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
++++ b/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
+@@ -66,8 +66,12 @@ properties:
+           - const: amlogic,meson-gx-vpu
+       - enum:
+           - amlogic,meson-g12a-vpu # G12A (S905X2, S905Y2, S905D2)
++          - amlogic,meson8-vpu
++          - amlogic,meson8b-vpu
++          - amlogic,meson8m2-vpu
+ 
+   reg:
++    minItems: 1
+     maxItems: 2
+ 
+   reg-names:
+@@ -82,6 +86,15 @@ properties:
+     description: should point to a canvas provider node
+     $ref: /schemas/types.yaml#/definitions/phandle
+ 
++  phys:
++    maxItems: 1
++    description:
++      PHY specifier for the CVBS DAC
++
++  phy-names:
++    items:
++      - const: cvbs-dac
++
+   power-domains:
+     maxItems: 1
+     description: phandle to the associated power domain
+@@ -125,6 +138,9 @@ examples:
+         #size-cells = <0>;
+         amlogic,canvas = <&canvas>;
+ 
++        phys = <&cvbs_dac_phy>;
++        phy-names = "cvbs-dac";
++
+         /* CVBS VDAC output port */
+         port@0 {
+             reg = <0>;

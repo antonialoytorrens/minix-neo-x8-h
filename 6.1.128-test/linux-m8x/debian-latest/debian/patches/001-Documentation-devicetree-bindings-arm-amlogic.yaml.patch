@@ -1,0 +1,20 @@
+diff --git a/Documentation/devicetree/bindings/arm/amlogic.yaml b/Documentation/devicetree/bindings/arm/amlogic.yaml
+index e16b5fa55847..18eb1786963d 100644
+--- a/Documentation/devicetree/bindings/arm/amlogic.yaml
++++ b/Documentation/devicetree/bindings/arm/amlogic.yaml
+@@ -35,12 +35,15 @@ properties:
+         items:
+           - enum:
+               - minix,neo-x8
++              - tronsmart,s82
+           - const: amlogic,meson8
+ 
+       - description: Boards with the Amlogic Meson8m2 SoC
+         items:
+           - enum:
++              - tronsmart,mxiii
+               - tronsmart,mxiii-plus
++              - wetek,core
+           - const: amlogic,meson8m2
+ 
+       - description: Boards with the Amlogic Meson8b SoC

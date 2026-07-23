@@ -1,0 +1,12 @@
+diff --git a/drivers/clk/meson/Kconfig b/drivers/clk/meson/Kconfig
+index fc002c155bc3..dc1beb51ff5d 100644
+--- a/drivers/clk/meson/Kconfig
++++ b/drivers/clk/meson/Kconfig
+@@ -49,6 +49,7 @@ config COMMON_CLK_MESON8B
+ 	default y
+ 	select COMMON_CLK_MESON_REGMAP
+ 	select COMMON_CLK_MESON_MPLL
++	select COMMON_CLK_MESON_PHASE
+ 	select COMMON_CLK_MESON_PLL
+ 	select MFD_SYSCON
+ 	select RESET_CONTROLLER

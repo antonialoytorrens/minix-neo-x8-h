@@ -1,0 +1,20 @@
+diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+index 5e19a961c34d..845a1e5c8871 100644
+--- a/drivers/mmc/host/Kconfig
++++ b/drivers/mmc/host/Kconfig
+@@ -443,6 +443,7 @@ config MMC_MESON_GX
+ 	tristate "Amlogic S905/GX*/AXG SD/MMC Host Controller support"
+ 	depends on ARCH_MESON|| COMPILE_TEST
+ 	depends on COMMON_CLK
++	select REGMAP_MMIO
+ 	help
+ 	  This selects support for the Amlogic SD/MMC Host Controller
+ 	  found on the S905/GX*/AXG family of SoCs.  This controller is
+@@ -469,6 +470,7 @@ config MMC_MESON_MX_SDIO
+ 	depends on ARCH_MESON || COMPILE_TEST
+ 	depends on COMMON_CLK
+ 	depends on OF_ADDRESS
++	select REGMAP_MMIO
+ 	help
+ 	  This selects support for the SD/MMC Host Controller on
+ 	  Amlogic Meson6, Meson8 and Meson8b SoCs.

@@ -1,0 +1,9 @@
+diff --git a/drivers/gpu/drm/meson/Makefile b/drivers/gpu/drm/meson/Makefile
+index 3afa31bdc950..817a5270aee6 100644
+--- a/drivers/gpu/drm/meson/Makefile
++++ b/drivers/gpu/drm/meson/Makefile
+@@ -6,3 +6,4 @@ meson-drm-y += meson_encoder_hdmi.o
+ 
+ obj-$(CONFIG_DRM_MESON) += meson-drm.o
+ obj-$(CONFIG_DRM_MESON_DW_HDMI) += meson_dw_hdmi.o
++obj-$(CONFIG_DRM_MESON_TRANSWITCH_HDMI) += meson_transwitch_hdmi.o

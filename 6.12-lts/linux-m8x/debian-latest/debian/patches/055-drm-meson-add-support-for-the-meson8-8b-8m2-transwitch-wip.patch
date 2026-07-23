@@ -7,21 +7,42 @@ Subject: [PATCH 55/98] drm/meson: Add support for the Meson8/8b/8m2 TranSwitch
 WiP
 
 Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+
+[Rebased for kernel 6.12.96: this driver was originally written against a
+newer upstream kernel that had grown HDMI-audio helpers on top of the DRM
+bridge framework which do not exist on 6.12.96 (devm_drm_bridge_alloc(),
+DRM_BRIDGE_OP_HDMI_AUDIO, and the hdmi_audio_{prepare,mute_stream,startup,
+shutdown} bridge callbacks/fields). HDMI audio support was dropped from
+this patch entirely for now (no sound-dai support from this driver yet);
+everything else (HDMI video: mode detection, EDID, hotplug detect,
+colorspace/infoframes) uses APIs that are already present on 6.12.96 as-is.
+Specifically:
+ - devm_drm_bridge_alloc() replaced with plain devm_kzalloc() + manually
+   setting bridge.funcs, matching the pattern already used by
+   meson_encoder_hdmi.c on this kernel version.
+ - meson_txc_hdmi_bridge_attach() takes attach(bridge, flags) instead of
+   attach(bridge, encoder, flags): bridge->encoder is already set by
+   drm_bridge_attach() before .attach() runs, so `encoder` is fetched via
+   `bridge->encoder` instead of the (removed) parameter.
+ - meson_txc_hdmi_bridge_atomic_{enable,disable}() and
+   meson_txc_hdmi_bridge_detect() take the older/still-current signatures
+   (struct drm_bridge_state * / no connector arg) on this kernel version;
+   `struct drm_atomic_state *state` is derived locally as
+   `old_bridge_state->base.state` where needed, same as
+   meson_encoder_hdmi_atomic_enable() elsewhere in this tree.]
 ---
- drivers/gpu/drm/meson/Kconfig                 |   11 +
+ drivers/gpu/drm/meson/Kconfig                 |   10 +
  drivers/gpu/drm/meson/Makefile                |    1 +
- drivers/gpu/drm/meson/meson_transwitch_hdmi.c | 1306 +++++++++++++++++
- drivers/gpu/drm/meson/meson_transwitch_hdmi.h |  543 +++++++
- 4 files changed, 1861 insertions(+)
+ drivers/gpu/drm/meson/meson_transwitch_hdmi.c | 1082 ++++++++++++++++++++++++
+ drivers/gpu/drm/meson/meson_transwitch_hdmi.h |  543 +++++++++++++
+ 4 files changed, 1636 insertions(+)
  create mode 100644 drivers/gpu/drm/meson/meson_transwitch_hdmi.c
  create mode 100644 drivers/gpu/drm/meson/meson_transwitch_hdmi.h
 
 diff --git a/drivers/gpu/drm/meson/Kconfig b/drivers/gpu/drm/meson/Kconfig
-index 09312aa449d6c8..ba562c01303645 100644
 --- a/drivers/gpu/drm/meson/Kconfig
 +++ b/drivers/gpu/drm/meson/Kconfig
-@@ -28,3 +28,14 @@ config DRM_MESON_DW_MIPI_DSI
- 	default y if DRM_MESON
+@@ -28,2 +28,12 @@
  	select DRM_DW_MIPI_DSI
  	select GENERIC_PHY_MIPI_DPHY
 +
@@ -34,22 +55,19 @@ index 09312aa449d6c8..ba562c01303645 100644
 +	select DRM_DISPLAY_HDMI_STATE_HELPER
 +	select DRM_DISPLAY_HELPER
 +	select REGMAP_MMIO
-+	select SND_SOC_HDMI_CODEC if SND_SOC
 diff --git a/drivers/gpu/drm/meson/Makefile b/drivers/gpu/drm/meson/Makefile
-index 43071bdbd4b995..c44cb6c529fe92 100644
 --- a/drivers/gpu/drm/meson/Makefile
 +++ b/drivers/gpu/drm/meson/Makefile
-@@ -7,3 +7,4 @@ meson-drm-y += meson_encoder_hdmi.o meson_encoder_dsi.o
+@@ -7,3 +7,4 @@
  obj-$(CONFIG_DRM_MESON) += meson-drm.o
  obj-$(CONFIG_DRM_MESON_DW_HDMI) += meson_dw_hdmi.o
  obj-$(CONFIG_DRM_MESON_DW_MIPI_DSI) += meson_dw_mipi_dsi.o
 +obj-$(CONFIG_DRM_MESON_TRANSWITCH_HDMI) += meson_transwitch_hdmi.o
 diff --git a/drivers/gpu/drm/meson/meson_transwitch_hdmi.c b/drivers/gpu/drm/meson/meson_transwitch_hdmi.c
 new file mode 100644
-index 00000000000000..cd78c1323c7fda
 --- /dev/null
 +++ b/drivers/gpu/drm/meson/meson_transwitch_hdmi.c
-@@ -0,0 +1,1306 @@
+@@ -0,0 +1,1082 @@
 +// SPDX-License-Identifier: GPL-2.0+
 +/*
 + * Copyright (C) 2021-2025 Martin Blumenstingl <martin.blumenstingl@googlemail.com>
@@ -76,8 +94,6 @@ index 00000000000000..cd78c1323c7fda
 +#include <drm/drm_edid.h>
 +#include <drm/drm_probe_helper.h>
 +#include <drm/drm_print.h>
-+
-+#include <sound/hdmi-codec.h>
 +
 +#include <uapi/linux/media-bus-format.h>
 +
@@ -427,7 +443,6 @@ index 00000000000000..cd78c1323c7fda
 +}
 +
 +static int meson_txc_hdmi_bridge_attach(struct drm_bridge *bridge,
-+					struct drm_encoder *encoder,
 +					enum drm_bridge_attach_flags flags)
 +{
 +	struct meson_txc_hdmi *priv = bridge->driver_private;
@@ -438,7 +453,7 @@ index 00000000000000..cd78c1323c7fda
 +		return -EINVAL;
 +	}
 +
-+	return drm_bridge_attach(encoder, priv->next_bridge, bridge, flags);
++	return drm_bridge_attach(bridge->encoder, priv->next_bridge, bridge, flags);
 +}
 +
 +/* Can return a maximum of 11 possible output formats for a mode/connector */
@@ -619,8 +634,9 @@ index 00000000000000..cd78c1323c7fda
 +}
 +
 +static void meson_txc_hdmi_bridge_atomic_enable(struct drm_bridge *bridge,
-+						struct drm_atomic_state *state)
++						struct drm_bridge_state *old_bridge_state)
 +{
++	struct drm_atomic_state *state = old_bridge_state->base.state;
 +	struct meson_txc_hdmi *priv = bridge_to_meson_txc_hdmi(bridge);
 +	struct drm_connector_state *conn_state;
 +	struct drm_bridge_state *bridge_state;
@@ -758,7 +774,7 @@ index 00000000000000..cd78c1323c7fda
 +}
 +
 +static void meson_txc_hdmi_bridge_atomic_disable(struct drm_bridge *bridge,
-+						 struct drm_atomic_state *state)
++						 struct drm_bridge_state *old_bridge_state)
 +{
 +	struct meson_txc_hdmi *priv = bridge_to_meson_txc_hdmi(bridge);
 +
@@ -773,8 +789,7 @@ index 00000000000000..cd78c1323c7fda
 +	}
 +}
 +
-+static enum drm_connector_status meson_txc_hdmi_bridge_detect(struct drm_bridge *bridge,
-+							      struct drm_connector *connector)
++static enum drm_connector_status meson_txc_hdmi_bridge_detect(struct drm_bridge *bridge)
 +{
 +	struct meson_txc_hdmi *priv = bridge_to_meson_txc_hdmi(bridge);
 +
@@ -913,220 +928,6 @@ index 00000000000000..cd78c1323c7fda
 +	return 0;
 +}
 +
-+static u32 meson_txc_hdmi_hdmi_codec_calc_audio_n(struct hdmi_codec_params *hparms)
-+{
-+	u32 audio_n;
-+
-+	if ((hparms->sample_rate % 44100) == 0)
-+		audio_n = (128 * hparms->sample_rate) / 900;
-+	else
-+		audio_n = (128 * hparms->sample_rate) / 1000;
-+
-+	if (hparms->cea.coding_type == HDMI_AUDIO_CODING_TYPE_EAC3 ||
-+	    hparms->cea.coding_type == HDMI_AUDIO_CODING_TYPE_DTS_HD)
-+		audio_n *= 4;
-+
-+	return audio_n;
-+}
-+
-+static u8 meson_txc_hdmi_hdmi_codec_coding_type(struct hdmi_codec_params *hparms)
-+{
-+	switch (hparms->cea.coding_type) {
-+	case HDMI_AUDIO_CODING_TYPE_MLP:
-+		return TX_AUDIO_CONTROL_AUDIO_PACKET_TYPE_HBR_AUDIO_PACKET;
-+	case HDMI_AUDIO_CODING_TYPE_DSD:
-+		return TX_AUDIO_CONTROL_AUDIO_PACKET_TYPE_ONE_BIT_AUDIO;
-+	case HDMI_AUDIO_CODING_TYPE_DST:
-+		return TX_AUDIO_CONTROL_AUDIO_PACKET_TYPE_DST_AUDIO_PACKET;
-+	default:
-+		return TX_AUDIO_CONTROL_AUDIO_PACKET_TYPE_AUDIO_SAMPLE_PACKET;
-+	}
-+}
-+
-+static int meson_txc_hdmi_audio_prepare(struct drm_bridge *bridge,
-+					struct drm_connector *connector,
-+					struct hdmi_codec_daifmt *fmt,
-+					struct hdmi_codec_params *hparms)
-+{
-+	struct meson_txc_hdmi *priv = bridge_to_meson_txc_hdmi(bridge);
-+	u16 audio_n, audio_tx_format;
-+	unsigned int i;
-+
-+	if (hparms->cea.coding_type == HDMI_AUDIO_CODING_TYPE_MLP) {
-+		/*
-+		 * TODO: fixed CTS is not supported yet, it needs special
-+		 * TX_SYS1_ACR_N_* settings
-+		 */
-+		return -EINVAL;
-+	}
-+
-+	switch (hparms->sample_width) {
-+	case 16:
-+		audio_tx_format = FIELD_PREP(TX_AUDIO_FORMAT_BIT_WIDTH_MASK,
-+					     TX_AUDIO_FORMAT_BIT_WIDTH_16);
-+		break;
-+
-+	case 20:
-+		audio_tx_format = FIELD_PREP(TX_AUDIO_FORMAT_BIT_WIDTH_MASK,
-+					     TX_AUDIO_FORMAT_BIT_WIDTH_20);
-+		break;
-+
-+	case 24:
-+		audio_tx_format = FIELD_PREP(TX_AUDIO_FORMAT_BIT_WIDTH_MASK,
-+					     TX_AUDIO_FORMAT_BIT_WIDTH_24);
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	switch (fmt->fmt) {
-+	case HDMI_I2S:
-+		regmap_set_bits(priv->regmap, HDMI_OTHER_CTRL1,
-+				HDMI_OTHER_CTRL1_HDMI_AUDIO_CLOCK_ON);
-+
-+		audio_tx_format |= TX_AUDIO_FORMAT_SPDIF_OR_I2S |
-+				   TX_AUDIO_FORMAT_I2S_ONE_BIT_OR_I2S |
-+				   FIELD_PREP(TX_AUDIO_FORMAT_I2S_FORMAT, 0x2);
-+
-+		if (hparms->channels > 2)
-+			audio_tx_format |= TX_AUDIO_FORMAT_I2S_2_OR_8_CH;
-+
-+		regmap_write(priv->regmap, TX_AUDIO_FORMAT, audio_tx_format);
-+
-+		regmap_write(priv->regmap, TX_AUDIO_I2S, TX_AUDIO_I2S_ENABLE);
-+		regmap_write(priv->regmap, TX_AUDIO_SPDIF, 0x0);
-+		break;
-+
-+	case HDMI_SPDIF:
-+		regmap_clear_bits(priv->regmap, HDMI_OTHER_CTRL1,
-+				  HDMI_OTHER_CTRL1_HDMI_AUDIO_CLOCK_ON);
-+
-+		if (hparms->cea.coding_type == HDMI_AUDIO_CODING_TYPE_STREAM)
-+			audio_tx_format |= TX_AUDIO_FORMAT_SPDIF_CHANNEL_STATUS_FROM_DATA_OR_REG;
-+
-+		regmap_write(priv->regmap, TX_AUDIO_FORMAT, audio_tx_format);
-+
-+		regmap_write(priv->regmap, TX_AUDIO_I2S, 0x0);
-+		regmap_write(priv->regmap, TX_AUDIO_SPDIF, TX_AUDIO_SPDIF_ENABLE);
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (hparms->channels > 2)
-+		regmap_write(priv->regmap, TX_AUDIO_HEADER,
-+			     TX_AUDIO_HEADER_AUDIO_SAMPLE_PACKET_HEADER_LAYOUT1);
-+	else
-+		regmap_write(priv->regmap, TX_AUDIO_HEADER, 0x0);
-+
-+	regmap_write(priv->regmap, TX_AUDIO_SAMPLE,
-+		     FIELD_PREP(TX_AUDIO_SAMPLE_CHANNEL_VALID,
-+				BIT(hparms->channels) - 1));
-+
-+	audio_n = meson_txc_hdmi_hdmi_codec_calc_audio_n(hparms);
-+
-+	regmap_write(priv->regmap, TX_SYS1_ACR_N_0,
-+		     FIELD_PREP(TX_SYS1_ACR_N_0_N_BYTE0,
-+				(audio_n >> 0) & 0xff));
-+	regmap_write(priv->regmap, TX_SYS1_ACR_N_1,
-+		     FIELD_PREP(TX_SYS1_ACR_N_1_N_BYTE1,
-+				(audio_n >> 8) & 0xff));
-+	regmap_update_bits(priv->regmap, TX_SYS1_ACR_N_2,
-+			   TX_SYS1_ACR_N_2_N_UPPER_NIBBLE,
-+			   FIELD_PREP(TX_SYS1_ACR_N_2_N_UPPER_NIBBLE,
-+				      (audio_n >> 16) & 0xf));
-+
-+	regmap_write(priv->regmap, TX_SYS0_ACR_CTS_0, 0x0);
-+	regmap_write(priv->regmap, TX_SYS0_ACR_CTS_1, 0x0);
-+	regmap_write(priv->regmap, TX_SYS0_ACR_CTS_2,
-+		     TX_SYS0_ACR_CTS_2_FORCE_ARC_STABLE);
-+
-+	regmap_write(priv->regmap, TX_AUDIO_CONTROL,
-+		     TX_AUDIO_CONTROL_AUTO_AUDIO_FIFO_CLEAR |
-+		     FIELD_PREP(TX_AUDIO_CONTROL_AUDIO_PACKET_TYPE_MASK,
-+				meson_txc_hdmi_hdmi_codec_coding_type(hparms)) |
-+		     TX_AUDIO_CONTROL_AUDIO_SAMPLE_PACKET_FLAT);
-+
-+	for (i = 0; i < ARRAY_SIZE(hparms->iec.status); i++) {
-+		unsigned char sub1, sub2;
-+
-+		sub1 = sub2 = hparms->iec.status[i];
-+
-+		if (i == 2) {
-+			sub1 |= FIELD_PREP(IEC958_AES2_CON_CHANNEL, 1);
-+			sub2 |= FIELD_PREP(IEC958_AES2_CON_CHANNEL, 2);
-+		}
-+
-+		regmap_write(priv->regmap, TX_IEC60958_SUB1_OFFSET + i, sub1);
-+		regmap_write(priv->regmap, TX_IEC60958_SUB2_OFFSET + i, sub2);
-+	}
-+
-+	return drm_atomic_helper_connector_hdmi_update_audio_infoframe(connector,
-+								       &hparms->cea);
-+}
-+
-+static int meson_txc_hdmi_audio_mute_stream(struct drm_bridge *bridge,
-+					    struct drm_connector *connector,
-+					    bool enable, int direction)
-+{
-+	struct meson_txc_hdmi *priv = bridge_to_meson_txc_hdmi(bridge);
-+
-+	regmap_write(priv->regmap, TX_AUDIO_PACK,
-+		     enable ? 0 : TX_AUDIO_PACK_AUDIO_SAMPLE_PACKETS_ENABLE);
-+
-+	return 0;
-+}
-+
-+static int meson_txc_hdmi_audio_startup(struct drm_bridge *bridge,
-+					struct drm_connector *connector)
-+{
-+	struct meson_txc_hdmi *priv = bridge_to_meson_txc_hdmi(bridge);
-+
-+	regmap_clear_bits(priv->regmap, TX_PACKET_CONTROL_2,
-+			  TX_PACKET_CONTROL_2_AUDIO_REQUEST_DISABLE);
-+
-+	/* reset audio master and sample */
-+	regmap_write(priv->regmap, TX_SYS5_TX_SOFT_RESET_1,
-+		     TX_SYS5_TX_SOFT_RESET_1_TX_AUDIO_RESAMPLE_RSTN |
-+		     TX_SYS5_TX_SOFT_RESET_1_TX_AUDIO_MASTER_RSTN);
-+	regmap_write(priv->regmap, TX_SYS5_TX_SOFT_RESET_1, 0x0);
-+
-+	regmap_write(priv->regmap, TX_AUDIO_CONTROL_MORE,
-+		     TX_AUDIO_CONTROL_MORE_ENABLE);
-+
-+	regmap_write(priv->regmap, TX_AUDIO_FIFO,
-+		     FIELD_PREP(TX_AUDIO_FIFO_FIFO_DEPTH_MASK,
-+				TX_AUDIO_FIFO_FIFO_DEPTH_512) |
-+		     FIELD_PREP(TX_AUDIO_FIFO_CRITICAL_THRESHOLD_MASK,
-+			        TX_AUDIO_FIFO_CRITICAL_THRESHOLD_DEPTH_DIV16) |
-+		     FIELD_PREP(TX_AUDIO_FIFO_NORMAL_THRESHOLD_MASK,
-+			        TX_AUDIO_FIFO_NORMAL_THRESHOLD_DEPTH_DIV8));
-+
-+	regmap_write(priv->regmap, TX_AUDIO_LIPSYNC, 0x0);
-+
-+	regmap_write(priv->regmap, TX_SYS1_ACR_N_2,
-+		     FIELD_PREP(TX_SYS1_ACR_N_2_N_MEAS_TOLERANCE, 0x3));
-+
-+	return 0;
-+}
-+
-+static void meson_txc_hdmi_audio_shutdown(struct drm_bridge *bridge,
-+					  struct drm_connector *connector)
-+{
-+	struct meson_txc_hdmi *priv = bridge_to_meson_txc_hdmi(bridge);
-+
-+	drm_atomic_helper_connector_hdmi_clear_audio_infoframe(connector);
-+
-+	regmap_write(priv->regmap, TX_AUDIO_CONTROL_MORE, 0x0);
-+	regmap_clear_bits(priv->regmap, HDMI_OTHER_CTRL1,
-+			  HDMI_OTHER_CTRL1_HDMI_AUDIO_CLOCK_ON);
-+
-+	regmap_set_bits(priv->regmap, TX_PACKET_CONTROL_2,
-+			TX_PACKET_CONTROL_2_AUDIO_REQUEST_DISABLE);
-+}
-+
 +static const struct drm_bridge_funcs meson_txc_hdmi_bridge_funcs = {
 +	.atomic_duplicate_state = drm_atomic_helper_bridge_duplicate_state,
 +	.atomic_destroy_state = drm_atomic_helper_bridge_destroy_state,
@@ -1141,10 +942,6 @@ index 00000000000000..cd78c1323c7fda
 +	.hdmi_tmds_char_rate_valid = meson_txc_hdmi_tmds_char_rate_valid,
 +	.hdmi_write_infoframe = meson_txc_hdmi_write_infoframe,
 +	.hdmi_clear_infoframe = meson_txc_hdmi_clear_infoframe,
-+	.hdmi_audio_prepare = meson_txc_hdmi_audio_prepare,
-+	.hdmi_audio_mute_stream = meson_txc_hdmi_audio_mute_stream,
-+	.hdmi_audio_startup = meson_txc_hdmi_audio_startup,
-+	.hdmi_audio_shutdown = meson_txc_hdmi_audio_shutdown,
 +};
 +
 +static int meson_txc_hdmi_hw_init(struct meson_txc_hdmi *priv,
@@ -1261,10 +1058,11 @@ index 00000000000000..cd78c1323c7fda
 +	u32 regval;
 +	int ret;
 +
-+	priv = devm_drm_bridge_alloc(dev, struct meson_txc_hdmi, bridge,
-+				     &meson_txc_hdmi_bridge_funcs);
++	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
 +	if (!priv)
 +		return -ENOMEM;
++
++	priv->bridge.funcs = &meson_txc_hdmi_bridge_funcs;
 +
 +	platform_set_drvdata(pdev, priv);
 +
@@ -1308,7 +1106,7 @@ index 00000000000000..cd78c1323c7fda
 +	priv->bridge.of_node = dev->of_node;
 +	priv->bridge.driver_private = priv;
 +	priv->bridge.ops = DRM_BRIDGE_OP_DETECT | DRM_BRIDGE_OP_EDID |
-+			   DRM_BRIDGE_OP_HDMI | DRM_BRIDGE_OP_HDMI_AUDIO;
++			   DRM_BRIDGE_OP_HDMI;
 +	priv->bridge.type = DRM_MODE_CONNECTOR_HDMIA;
 +	priv->bridge.interlace_allowed = true;
 +	priv->bridge.max_bpc = 12;
@@ -1317,10 +1115,6 @@ index 00000000000000..cd78c1323c7fda
 +					 BIT(HDMI_COLORSPACE_YUV444);
 +	priv->bridge.vendor = "Amlogic";
 +	priv->bridge.product = "TranSwitch-HDMI";
-+	priv->bridge.hdmi_audio_dev = dev;
-+	priv->bridge.hdmi_audio_max_i2s_playback_channels = 8;
-+	priv->bridge.hdmi_audio_spdif_playback = 1;
-+	priv->bridge.hdmi_audio_dai_port = 2;
 +
 +	drm_bridge_add(&priv->bridge);
 +
@@ -1358,7 +1152,6 @@ index 00000000000000..cd78c1323c7fda
 +MODULE_LICENSE("GPL v2");
 diff --git a/drivers/gpu/drm/meson/meson_transwitch_hdmi.h b/drivers/gpu/drm/meson/meson_transwitch_hdmi.h
 new file mode 100644
-index 00000000000000..a1dd7c0a9052fe
 --- /dev/null
 +++ b/drivers/gpu/drm/meson/meson_transwitch_hdmi.h
 @@ -0,0 +1,543 @@
@@ -1905,4 +1698,3 @@ index 00000000000000..a1dd7c0a9052fe
 +#define HDMI_OTHER_RX_PACKET_INTR_CLR					0x800c
 +
 +#endif /* __MESON_TRANSWITCH_HDMI_H__ */
-

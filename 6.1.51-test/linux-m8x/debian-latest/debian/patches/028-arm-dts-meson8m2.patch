@@ -1,0 +1,15 @@
+diff --git a/arch/arm/boot/dts/meson8m2.dtsi b/arch/arm/boot/dts/meson8m2.dtsi
+index 6725dd9fd825..fcb2ad976098 100644
+--- a/arch/arm/boot/dts/meson8m2.dtsi
++++ b/arch/arm/boot/dts/meson8m2.dtsi
+@@ -96,6 +96,10 @@ &usb1_phy {
+ 	compatible = "amlogic,meson8m2-usb2-phy", "amlogic,meson-mx-usb2-phy";
+ };
+ 
++&vpu {
++	compatible = "amlogic,meson8m2-vpu";
++};
++
+ &wdt {
+ 	compatible = "amlogic,meson8m2-wdt", "amlogic,meson8b-wdt";
+ };

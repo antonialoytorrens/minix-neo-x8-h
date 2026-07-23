@@ -1,0 +1,26 @@
+diff --git a/drivers/gpu/drm/meson/Kconfig b/drivers/gpu/drm/meson/Kconfig
+index 823909da87db..2fe1e4cc44ad 100644
+--- a/drivers/gpu/drm/meson/Kconfig
++++ b/drivers/gpu/drm/meson/Kconfig
+@@ -10,6 +10,7 @@ config DRM_MESON
+ 	select REGMAP_MMIO
+ 	select MESON_CANVAS
+ 	select CEC_CORE if CEC_NOTIFIER
++	imply PHY_MESON_CVBS_DAC
+ 
+ config DRM_MESON_DW_HDMI
+ 	tristate "HDMI Synopsys Controller support for Amlogic Meson Display"
+@@ -17,3 +18,13 @@ config DRM_MESON_DW_HDMI
+ 	default y if DRM_MESON
+ 	select DRM_DW_HDMI
+ 	imply DRM_DW_HDMI_I2S_AUDIO
++
++config DRM_MESON_TRANSWITCH_HDMI
++	tristate "Amlogic Meson8/8b/8m2 TranSwitch HDMI 1.4 Controller support"
++	depends on ARM || COMPILE_TEST
++	depends on DRM_MESON
++	default y if DRM_MESON
++	select DRM_DISPLAY_HDMI_HELPER
++	select DRM_DISPLAY_HELPER
++	select REGMAP_MMIO
++	select SND_SOC_HDMI_CODEC if SND_SOC

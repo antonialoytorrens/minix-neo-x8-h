@@ -1,0 +1,86 @@
+diff --git a/drivers/gpu/drm/meson/meson_drv.h b/drivers/gpu/drm/meson/meson_drv.h
+index c62ee358456f..fe0a8f8762fd 100644
+--- a/drivers/gpu/drm/meson/meson_drv.h
++++ b/drivers/gpu/drm/meson/meson_drv.h
+@@ -7,22 +7,29 @@
+ #ifndef __MESON_DRV_H
+ #define __MESON_DRV_H
+ 
++#include <linux/clk.h>
+ #include <linux/device.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/regmap.h>
++#include <linux/reset.h>
+ 
+ struct drm_crtc;
+ struct drm_device;
+ struct drm_plane;
+ struct meson_drm;
+ struct meson_afbcd_ops;
++struct phy;
++struct platform_device;
+ 
+ enum vpu_compatible {
+-	VPU_COMPATIBLE_GXBB = 0,
+-	VPU_COMPATIBLE_GXL  = 1,
+-	VPU_COMPATIBLE_GXM  = 2,
+-	VPU_COMPATIBLE_G12A = 3,
++	VPU_COMPATIBLE_M8 = 0,
++	VPU_COMPATIBLE_M8B = 1,
++	VPU_COMPATIBLE_M8M2 = 2,
++	VPU_COMPATIBLE_GXBB = 3,
++	VPU_COMPATIBLE_GXL  = 4,
++	VPU_COMPATIBLE_GXM  = 5,
++	VPU_COMPATIBLE_G12A = 6,
+ };
+ 
+ enum {
+@@ -40,6 +47,25 @@ struct meson_drm_soc_limits {
+ 	unsigned int max_hdmi_phy_freq;
+ };
+ 
++enum vpu_bulk_clk_id {
++	VPU_VID_CLK_TMDS = 0,
++	VPU_VID_CLK_HDMI_TX_PIXEL,
++	VPU_VID_CLK_CTS_ENCP,
++	VPU_VID_CLK_CTS_ENCI,
++	VPU_VID_CLK_CTS_ENCT,
++	VPU_VID_CLK_CTS_ENCL,
++	VPU_VID_CLK_CTS_VDAC0,
++	VPU_VID_CLK_NUM
++};
++
++enum vpu_bulk_vid_pll_reset_id {
++	VPU_RESET_VID_PLL_PRE = 0,
++	VPU_RESET_VID_PLL_POST,
++	VPU_RESET_VID_PLL_SOFT_PRE,
++	VPU_RESET_VID_PLL_SOFT_POST,
++	VPU_RESET_VID_PLL_NUM
++};
++
+ struct meson_drm {
+ 	struct device *dev;
+ 	enum vpu_compatible compat;
+@@ -61,6 +87,21 @@ struct meson_drm {
+ 
+ 	const struct meson_drm_soc_limits *limits;
+ 
++	struct phy *cvbs_dac;
++	bool cvbs_dac_enabled;
++	struct platform_device *cvbs_dac_pdev;
++
++	struct clk_bulk_data intr_clks[3];
++	unsigned int num_intr_clks;
++	bool intr_clks_enabled;
++	struct clk_bulk_data vid_clks[VPU_VID_CLK_NUM];
++	bool vid_clk_rate_exclusive[VPU_VID_CLK_NUM];
++	struct clk *clk_venc;
++	bool clk_venc_enabled;
++	struct clk *clk_dac;
++	bool clk_dac_enabled;
++	struct reset_control_bulk_data vid_pll_resets[VPU_RESET_VID_PLL_NUM];
++
+ 	/* Components Data */
+ 	struct {
+ 		bool osd1_enabled;

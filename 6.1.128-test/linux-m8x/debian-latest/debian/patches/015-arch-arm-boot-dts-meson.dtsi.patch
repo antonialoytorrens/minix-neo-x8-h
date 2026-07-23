@@ -1,0 +1,33 @@
+diff --git a/arch/arm/boot/dts/meson.dtsi b/arch/arm/boot/dts/meson.dtsi
+index 8e3860d5d916..b95adb9a2237 100644
+--- a/arch/arm/boot/dts/meson.dtsi
++++ b/arch/arm/boot/dts/meson.dtsi
+@@ -35,6 +35,19 @@ hhi: system-controller@4000 {
+ 					     "simple-mfd",
+ 					     "syscon";
+ 				reg = <0x4000 0x400>;
++				#address-cells = <1>;
++				#size-cells = <1>;
++				ranges = <0x0 0x4000 0x400>;
++
++
++				cvbs_dac: video-dac@2f4 {
++					compatible = "amlogic,meson-cvbs-dac";
++					reg = <0x2f4 0x8>;
++
++					#phy-cells = <0>;
++
++					status = "disabled";
++				};
+ 			};
+ 
+ 			aiu: audio-controller@5400 {
+@@ -124,6 +137,8 @@ usb0_phy: phy@8800 {
+ 				compatible = "amlogic,meson-mx-usb2-phy";
+ 				#phy-cells = <0>;
+ 				reg = <0x8800 0x20>;
++				gpio-controller;
++				#gpio-cells = <2>;
+ 				status = "disabled";
+ 			};
+ 

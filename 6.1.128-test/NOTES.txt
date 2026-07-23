@@ -1,0 +1,1 @@
+this boots without initrd. please copy the template-noinitrd/* into the BOOT partition (BOOTPART).

@@ -1,0 +1,20 @@
+diff --git a/arch/arm/mach-meson/meson.c b/arch/arm/mach-meson/meson.c
+index de56e707c7aa..ad6e776db8d5 100644
+--- a/arch/arm/mach-meson/meson.c
++++ b/arch/arm/mach-meson/meson.c
+@@ -6,6 +6,8 @@
+ #include <linux/of_platform.h>
+ #include <asm/mach/arch.h>
+ 
++#include "tz_firmware.h"
++
+ static const char * const meson_common_board_compat[] = {
+ 	"amlogic,meson6",
+ 	"amlogic,meson8",
+@@ -18,4 +20,6 @@ DT_MACHINE_START(MESON, "Amlogic Meson platform")
+ 	.dt_compat	= meson_common_board_compat,
+ 	.l2c_aux_val	= 0,
+ 	.l2c_aux_mask	= ~0,
++	.init_early	= meson_mx_trustzone_firmware_init,
++	.reserve	= meson_mx_trustzone_firmware_reserve_mem,
+ MACHINE_END

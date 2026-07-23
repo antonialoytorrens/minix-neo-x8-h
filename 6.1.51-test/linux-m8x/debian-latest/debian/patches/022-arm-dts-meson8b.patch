@@ -1,0 +1,258 @@
+diff --git a/arch/arm/boot/dts/meson8b.dtsi b/arch/arm/boot/dts/meson8b.dtsi
+index cf9c04a61ba3..0244d6837889 100644
+--- a/arch/arm/boot/dts/meson8b.dtsi
++++ b/arch/arm/boot/dts/meson8b.dtsi
+@@ -276,6 +276,116 @@ mali: gpu@c0000 {
+ 			operating-points-v2 = <&gpu_opp_table>;
+ 			#cooling-cells = <2>; /* min followed by max */
+ 		};
++
++		hdmi_tx: hdmi-tx@42000 {
++			compatible = "amlogic,meson8b-hdmi-tx";
++			reg = <0x42000 0xc>;
++			interrupts = <GIC_SPI 57 IRQ_TYPE_EDGE_RISING>;
++			phys = <&hdmi_tx_phy>;
++			phy-names = "hdmi";
++			clocks = <&clkc CLKID_HDMI_PCLK>,
++				 <&clkc CLKID_HDMI_SYS>;
++			clock-names = "pclk", "sys";
++
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			#sound-dai-cells = <1>;
++			sound-name-prefix = "HDMITX";
++
++			status = "disabled";
++
++			/* VPU VENC Input */
++			hdmi_tx_venc_port: port@0 {
++				reg = <0>;
++
++				hdmi_tx_in: endpoint {
++					remote-endpoint = <&hdmi_tx_out>;
++				};
++			};
++
++			/* TMDS Output */
++			hdmi_tx_tmds_port: port@1 {
++				reg = <1>;
++			};
++		};
++
++		vpu: vpu@100000 {
++			compatible = "amlogic,meson8b-vpu";
++
++			reg = <0x100000 0x10000>;
++			reg-names = "vpu";
++
++			interrupts = <GIC_SPI 3 IRQ_TYPE_EDGE_RISING>;
++
++			amlogic,canvas = <&canvas>;
++
++			/*
++			 * The VCLK{,2}_IN path always needs to derived from
++			 * the CLKID_VID_PLL_FINAL_DIV so other clocks like
++			 * MPLL1 are not used (MPLL1 is reserved for audio
++			 * purposes).
++			 */
++			assigned-clocks = <&clkc CLKID_VCLK_IN_SEL>,
++					  <&clkc CLKID_VCLK2_IN_SEL>;
++			assigned-clock-parents = <&clkc CLKID_VID_PLL_FINAL_DIV>,
++						 <&clkc CLKID_VID_PLL_FINAL_DIV>;
++
++			clocks = <&clkc CLKID_VPU_INTR>,
++				 <&clkc CLKID_HDMI_INTR_SYNC>,
++				 <&clkc CLKID_GCLK_VENCI_INT>,
++				 <&clkc CLKID_HDMI_PLL_HDMI_OUT>,
++				 <&clkc CLKID_HDMI_TX_PIXEL>,
++				 <&clkc CLKID_CTS_ENCP>,
++				 <&clkc CLKID_CTS_ENCI>,
++				 <&clkc CLKID_CTS_ENCT>,
++				 <&clkc CLKID_CTS_ENCL>,
++				 <&clkc CLKID_CTS_VDAC0>;
++			clock-names = "vpu_intr",
++				      "hdmi_intr_sync",
++				      "venci_int",
++				      "tmds",
++				      "hdmi_tx_pixel",
++				      "cts_encp",
++				      "cts_enci",
++				      "cts_enct",
++				      "cts_encl",
++				      "cts_vdac0";
++
++			resets = <&clkc CLKC_RESET_VID_DIVIDER_CNTL_RESET_N_PRE>,
++				 <&clkc CLKC_RESET_VID_DIVIDER_CNTL_RESET_N_POST>,
++				 <&clkc CLKC_RESET_VID_DIVIDER_CNTL_SOFT_RESET_PRE>,
++				 <&clkc CLKC_RESET_VID_DIVIDER_CNTL_SOFT_RESET_POST>;
++			reset-names = "vid_pll_pre",
++				      "vid_pll_post",
++				      "vid_pll_soft_pre",
++				      "vid_pll_soft_post";
++
++			phys = <&cvbs_dac>;
++			phy-names = "cvbs-dac";
++
++			power-domains = <&pwrc PWRC_MESON8_VPU_ID>;
++
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			#sound-dai-cells = <0>;
++			sound-name-prefix = "HDMITX";
++
++			/* CVBS VDAC output port */
++			cvbs_vdac_port: port@0 {
++				reg = <0>;
++			};
++
++			/* HDMI-TX output port */
++			hdmi_tx_port: port@1 {
++				reg = <1>;
++
++				hdmi_tx_out: endpoint {
++					remote-endpoint = <&hdmi_tx_in>;
++				};
++			};
++		};
+ 	};
+ }; /* end of / */
+ 
+@@ -325,6 +435,14 @@ gpio_ao: ao-bank@14 {
+ 			gpio-ranges = <&pinctrl_aobus 0 0 16>;
+ 		};
+ 
++		hdmi_cec_ao_pins: hdmi-cec-ao {
++			mux {
++				groups = "hdmi_cec_1";
++				function = "hdmi_cec";
++				bias-pull-up;
++			};
++		};
++
+ 		i2s_am_clk_pins: i2s-am-clk-out {
+ 			mux {
+ 				groups = "i2s_am_clk_out";
+@@ -381,6 +499,15 @@ mux {
+ 			};
+ 		};
+ 	};
++
++	cec_AO: cec@100 {
++		compatible = "amlogic,meson-gx-ao-cec"; // FIXME
++		reg = <0x100 0x14>;
++		interrupts = <GIC_SPI 151 IRQ_TYPE_EDGE_RISING>;
++		// TODO: 32768HZ clock
++		hdmi-phandle = <&hdmi_tx>;
++		status = "disabled";
++	};
+ };
+ 
+ &ao_arc_rproc {
+@@ -389,6 +516,8 @@ &ao_arc_rproc {
+ 	sram = <&ao_arc_sram>;
+ 	resets = <&reset RESET_MEDIA_CPU>;
+ 	clocks = <&clkc CLKID_AO_MEDIA_CPU>;
++	status = "okay";
++	firmware-name = "zephyr.elf";
+ };
+ 
+ &cbus {
+@@ -471,6 +600,22 @@ mux {
+ 			};
+ 		};
+ 
++		hdmi_hpd_pins: hdmi-hpd {
++			mux {
++				groups = "hdmi_hpd";
++				function = "hdmi";
++				bias-disable;
++			};
++		};
++
++		hdmi_i2c_pins: hdmi-i2c {
++			mux {
++				groups = "hdmi_sda", "hdmi_scl";
++				function = "hdmi";
++				bias-disable;
++			};
++		};
++
+ 		i2c_a_pins: i2c-a {
+ 			mux {
+ 				groups = "i2c_sda_a", "i2c_sck_a";
+@@ -547,6 +692,16 @@ smp-sram@1ff80 {
+ 	};
+ };
+ 
++&cvbs_dac {
++	compatible = "amlogic,meson8-cvbs-dac", "amlogic,meson-cvbs-dac";
++
++	clocks = <&clkc CLKID_CTS_VDAC0>;
++
++	nvmem-cells = <&cvbs_trimming>;
++	nvmem-cell-names = "cvbs_trimming";
++
++	status = "okay";
++};
+ 
+ &efuse {
+ 	compatible = "amlogic,meson8b-efuse";
+@@ -557,6 +712,10 @@ temperature_calib: calib@1f4 {
+ 		/* only the upper two bytes are relevant */
+ 		reg = <0x1f4 0x4>;
+ 	};
++
++	cvbs_trimming: calib@1f8 {
++		reg = <0x1f8 0x2>;
++	};
+ };
+ 
+ &ethmac {
+@@ -586,16 +745,18 @@ &gpio_intc {
+ };
+ 
+ &hhi {
+-	clkc: clock-controller {
++	clkc: clock-controller@0 {
+ 		compatible = "amlogic,meson8b-clkc";
++		reg = <0x0 0x39c>;
+ 		clocks = <&xtal>, <&ddr_clkc DDR_CLKID_DDR_PLL>;
+ 		clock-names = "xtal", "ddr_pll";
+ 		#clock-cells = <1>;
+ 		#reset-cells = <1>;
+ 	};
+ 
+-	pwrc: power-controller {
++	pwrc: power-controller@100 {
+ 		compatible = "amlogic,meson8b-pwrc";
++		reg = <0x100 0x10>;
+ 		#power-domain-cells = <1>;
+ 		amlogic,ao-sysctrl = <&pmu>;
+ 		resets = <&reset RESET_DBLK>,
+@@ -617,6 +778,14 @@ pwrc: power-controller {
+ 		assigned-clocks = <&clkc CLKID_VPU>;
+ 		assigned-clock-rates = <182142857>;
+ 	};
++
++	hdmi_tx_phy: hdmi-phy@3a0 {
++		compatible = "amlogic,meson8b-hdmi-tx-phy",
++			     "amlogic,meson8-hdmi-tx-phy";
++		clocks = <&clkc CLKID_HDMI_PLL_HDMI_OUT>;
++		reg = <0x3a0 0xc>;
++		#phy-cells = <0>;
++	};
+ };
+ 
+ &hwrng {
+@@ -643,6 +812,9 @@ &L2 {
+ 	arm,filter-ranges = <0x100000 0xc0000000>;
+ 	prefetch-data = <1>;
+ 	prefetch-instr = <1>;
++	arm,prefetch-offset = <7>;
++	arm,double-linefill = <1>;
++	arm,prefetch-drop = <1>;
+ 	arm,shared-override;
+ };
+ 

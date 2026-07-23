@@ -7,9 +7,14 @@ Subject: [PATCH 98/98] net: phy: icplus: Add support for managing the clocks
 TODO: commit message
 
 Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+
+[dts: rebased onto 6.6.144 for 6.6-lts - devm_clk_get_optional_enabled_with_rate()
+ doesn't exist at this baseline; kept the split
+ devm_clk_get_optional_enabled() + clk_set_rate(), same as done for
+ drivers/net/phy/smsc.c]
 ---
- drivers/net/phy/icplus.c | 48 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
+ drivers/net/phy/icplus.c | 51 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
 
 diff --git a/drivers/net/phy/icplus.c b/drivers/net/phy/icplus.c
 index c0c4f19cfb6a00..b8ee9ce07b1d47 100644
@@ -61,7 +66,7 @@ index c0c4f19cfb6a00..b8ee9ce07b1d47 100644
  
  	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
  	if (!priv)
-@@ -229,6 +257,26 @@ static int ip101a_g_probe(struct phy_device *phydev)
+@@ -229,6 +257,29 @@ static int ip101a_g_probe(struct phy_device *phydev)
  
  	phydev->priv = priv;
  
@@ -72,12 +77,15 @@ index c0c4f19cfb6a00..b8ee9ce07b1d47 100644
 +	else
 +		in_clk_mhz = 25;
 +
-+	clk = devm_clk_get_optional_enabled_with_rate(dev, NULL,
-+						      in_clk_mhz * 1000 * 1000);
++	clk = devm_clk_get_optional_enabled(dev, NULL);
 +	if (IS_ERR(clk))
 +		return dev_err_probe(dev, PTR_ERR(clk),
 +				     "Failed to get %luMHz clock input\n",
 +				     in_clk_mhz);
++
++	ret = clk_set_rate(clk, in_clk_mhz * 1000 * 1000);
++	if (ret)
++		return ret;
 +
 +	if (phydev->interface == PHY_INTERFACE_MODE_RMII && !has_ref_clk_input) {
 +		ret = ip101a_g_register_rmii_ref_clk(dev);

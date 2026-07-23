@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu -o pipefail
 
-KERNEL_VERSION="6.18.38"
+KERNEL_VERSION="6.18.39"
 
 cd "$(dirname $0)"
 if [ ! -f "linux-${KERNEL_VERSION}.tar.xz" ]; then
@@ -21,6 +21,8 @@ done
 cp ../config.armhf .config
 make ARCH="arm" CROSS_COMPILE="/usr/bin/arm-linux-gnueabihf-" olddefconfig && \
 make -j$(nproc) ARCH="arm" CROSS_COMPILE="/usr/bin/arm-linux-gnueabihf-" && \
+rm -rf ../pkg && \
+mkdir -p ../pkg/boot && \
 install -m 644 .config ../pkg/boot/config-${KERNEL_VERSION}-stb-m8x && \
 install -m 644 arch/arm/boot/zImage ../pkg/boot/zImage-${KERNEL_VERSION}-stb-m8x && \
 install -m 644 System.map ../pkg/boot/System.map-${KERNEL_VERSION}-stb-m8x && \

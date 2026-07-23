@@ -1,0 +1,13 @@
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.yaml b/Documentation/devicetree/bindings/vendor-prefixes.yaml
+index 70ffb3780621..f177c94c6d6d 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.yaml
++++ b/Documentation/devicetree/bindings/vendor-prefixes.yaml
+@@ -877,6 +877,8 @@ patternProperties:
+     deprecated: true
+   "^mxicy,.*":
+     description: Macronix International Co., Ltd.
++  "^mxtronics,.*":
++    description: Beijing Times Minxin Technology Co., Ltd.
+   "^myir,.*":
+     description: MYIR Tech Limited
+   "^national,.*":

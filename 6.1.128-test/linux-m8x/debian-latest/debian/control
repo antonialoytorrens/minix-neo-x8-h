@@ -1,0 +1,51 @@
+Source: linux-m8x
+Section: kernel
+Priority: optional
+Maintainer: Antoni Aloy Torrens <aaloytorrens@gmail.com>
+Rules-Requires-Root: no
+Build-Depends: debhelper-compat (= 13), python3-dev, bc, rsync, kmod, cpio, bison, flex | flex:native, libelf-dev:native, libssl-dev:native, u-boot-tools
+Homepage: https://www.kernel.org/
+
+Package: linux-image-6.1.177-m8x-armhf
+Architecture: armhf
+Depends: kmod, linux-base
+Provides: linux-image
+Description: Linux kernel 6.1.177 (Amlogic Meson8 / m8x variant)
+ This package contains the Linux kernel, modules and corresponding other
+ files, version 6.1.177, specifically built for Amlogic Meson8 and Meson8m2
+ TV boxes, with the meson8 changes from the xdarklight tree.
+ .
+ It ships a uImage for legacy Amlogic u-boot along with the device trees
+ for the supported boards.
+
+Package: linux-headers-6.1.177-m8x-armhf
+Architecture: armhf
+Depends: linux-image-6.1.177-m8x-armhf (= ${binary:Version})
+Description: Linux kernel headers 6.1.177 (Amlogic Meson8 / m8x variant)
+ This package provides kernel header files for version 6.1.177
+ for building external modules against the m8x-enabled kernel.
+
+Package: linux-libc-dev-m8x
+Section: devel
+Provides: linux-kernel-headers
+Architecture: armhf
+Multi-Arch: same
+Conflicts: linux-libc-dev
+Replaces: linux-libc-dev
+Description: Linux support headers for userspace development (m8x variant)
+ This package provides userspace headers from the Linux kernel with Amlogic
+ Meson8 support. These headers are used by the installed headers for GNU
+ glibc and other system libraries.
+
+Package: linux-image-m8x
+Architecture: armhf
+Depends: linux-image-6.1.177-m8x-armhf (= ${binary:Version})
+Description: Linux kernel (m8x) - meta package
+ This is a meta-package that always depends on the latest m8x kernel.
+ Installing this package will ensure you get kernel updates automatically.
+
+Package: linux-headers-m8x
+Architecture: armhf
+Depends: linux-headers-6.1.177-m8x-armhf (= ${binary:Version})
+Description: Linux kernel headers (m8x) - meta package
+ This is a meta-package that always depends on the latest m8x kernel headers.

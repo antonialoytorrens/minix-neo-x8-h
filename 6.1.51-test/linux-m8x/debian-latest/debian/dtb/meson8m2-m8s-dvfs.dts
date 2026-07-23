@@ -1,0 +1,54 @@
+/*
+ * Copyright (c) 2017 Martin Blumenstingl <martin.blumenstingl@googlemail.com>.
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/dts-v1/;
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/leds/common.h>
+#include "meson8m2-m8s.dts"
+
+/ {
+        model = "m8s-dvfs";
+        compatible = "akaso,m8s", "amlogic,meson8m2";
+
+	// delete the original pwm led and replace it with a gpio driven one
+	/delete-node/ pwmleds;
+
+	gpio-leds {
+		compatible = "gpio-leds";
+
+		blue {
+			function = LED_FUNCTION_STATUS;
+			default-state = "off";
+			gpios = <&gpio_ao GPIO_TEST_N GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	// delete the original fixed vcck regulator and replace it with a pwm driven one
+	/delete-node/ vcck;
+
+ 	vcck: regulator-vcck {
+		compatible = "pwm-regulator";
+
+		regulator-name = "VCCK";
+		regulator-min-microvolt = <825000>;
+		// opp points are defined up to 1150000 - so maybe some room for overclocking?
+		regulator-max-microvolt = <1100000>;
+
+		pwms = <&pwm_cd 0 1148 0>;
+		pwm-dutycycle-range = <100 0>;
+
+		regulator-boot-on;
+		regulator-always-on;
+	};
+};
+
+&pwm_cd {
+	status = "okay";
+	pinctrl-0 = <&pwm_c_dv9_pins>, <&pwm_d_pins>;
+	pinctrl-names = "default";
+	clocks = <&xtal>, <&xtal>;
+	clock-names = "clkin0", "clkin1";
+};

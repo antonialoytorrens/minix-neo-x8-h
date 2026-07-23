@@ -1,0 +1,12 @@
+diff --git a/drivers/usb/host/xhci.h b/drivers/usb/host/xhci.h
+index 1354310cb37b..9627e8050127 100644
+--- a/drivers/usb/host/xhci.h
++++ b/drivers/usb/host/xhci.h
+@@ -1662,6 +1662,7 @@ struct xhci_hcd {
+ #define XHCI_ZHAOXIN_HOST	BIT_ULL(46)
+ #define XHCI_WRITE_64_HI_LO	BIT_ULL(47)
+ #define XHCI_CDNS_SCTX_QUIRK	BIT_ULL(48)
++#define XHCI_ETRON_GPIO_QUIRK	BIT_ULL(49)
+ 
+ 	unsigned int		num_active_eps;
+ 	unsigned int		limit_active_eps;

@@ -1,0 +1,11 @@
+diff --git a/include/dt-bindings/clock/meson8b-clkc.h b/include/dt-bindings/clock/meson8b-clkc.h
+index 78aa07fd7cc0..b5232cff19e4 100644
+--- a/include/dt-bindings/clock/meson8b-clkc.h
++++ b/include/dt-bindings/clock/meson8b-clkc.h
+@@ -124,5 +124,6 @@
+ #define CLKID_CTS_AMCLK		209
+ #define CLKID_CTS_MCLK_I958	212
+ #define CLKID_CTS_I958		213
++#define CLKID_ETH_CLK		221
+ 
+ #endif /* __MESON8B_CLKC_H */
