@@ -100,4 +100,6 @@
 100-gen-stmmac-mac-addr-on-kernel-cmdline.patch
 101-fix-mmc-on-reboot.patch
 102-add-extra-dtb-files.patch
-103-irq-meson-gpio-skip-set-wake.patch
+# This 103 patch is AI generated, please proceed with caution.
+# It is for BCM4330 wifi troubleshooting.
+#103-irq-meson-gpio-skip-set-wake.patch

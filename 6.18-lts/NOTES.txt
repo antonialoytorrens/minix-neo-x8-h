@@ -1,3 +1,9 @@
+Please execute build.sh
+and when you have SDCARD mounted:
+run postinst.sh in order to create backup of what's currently running and replace with new.
+
+=====
+
 linux-m8x/debian-latest/debian/patches/001-*.patch through 098-*.patch are
 adapted from xdarklight's linux fork, branch
 "meson-mx-integration-6.20-20251223":
@@ -17,3 +23,12 @@ vanilla kernel 6.18.38.
 Patches are tracked in debian/patches/series (quilt format) and are
 applied both by build.sh (manual build) and by dpkg-source/dpkg-buildpackage
 when building the linux-m8x Debian package from linux-m8x/debian-latest.
+
+
+=====
+
+The conf files are workarounds for X initialization.
+Seems that max resolution it permits is 1920x1080@60 .
+I am using an ODROID-U3 dongle for WiFi connection.
+
+=====
