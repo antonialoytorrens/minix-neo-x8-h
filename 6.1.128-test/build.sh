@@ -31,9 +31,13 @@ for f in ../linux-m8x/debian-latest/debian/patches/*.patch; do
 	patch -p1 -F0 -N -f < "${f}"
 done
 
-cp ../config.armhf.no-lima .config && \
+echo "Copying extra dtb sources..."
+cp ../linux-m8x/debian-latest/debian/dtb/*.dts* arch/arm/boot/dts/
+
+cp ../config.armhf .config && \
 make ARCH="arm" CROSS_COMPILE="/usr/bin/arm-linux-gnueabihf-" olddefconfig && \
 make -j"$(nproc)" ARCH="arm" CROSS_COMPILE="/usr/bin/arm-linux-gnueabihf-" && \
+mkdir -p ../pkg/boot && \
 install -m 644 .config ../pkg/boot/config-${KERNEL_VERSION}-stb-m8x && \
 install -m 644 arch/arm/boot/zImage ../pkg/boot/zImage-${KERNEL_VERSION}-stb-m8x && \
 install -m 644 System.map ../pkg/boot/System.map-${KERNEL_VERSION}-stb-m8x && \

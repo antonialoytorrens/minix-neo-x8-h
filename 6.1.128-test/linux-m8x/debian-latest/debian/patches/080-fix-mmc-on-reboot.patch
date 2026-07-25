@@ -51,7 +51,7 @@ index 53e3f6a4245a..1e1411009d87 100644
  static const struct meson_mx_sdhc_data meson_mx_sdhc_data_meson8 = {
  	.init_hw			= meson_mx_sdhc_init_hw_meson8,
  	.set_pdma			= meson_mx_sdhc_set_pdma_meson8,
-@@ -899,8 +921,9 @@ static const struct of_device_id meson_mx_sdhc_of_match[] = {
+@@ -904,9 +921,10 @@ static const struct of_device_id meson_mx_sdhc_of_match[] = {
  MODULE_DEVICE_TABLE(of, meson_mx_sdhc_of_match);
  
  static struct platform_driver meson_mx_sdhc_driver = {
@@ -62,4 +62,5 @@ index 53e3f6a4245a..1e1411009d87 100644
 +	.shutdown	= meson_mx_sdhc_shutdown,
  	.driver  = {
  		.name = "meson-mx-sdhc",
+ 		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
  		.of_match_table = of_match_ptr(meson_mx_sdhc_of_match),
