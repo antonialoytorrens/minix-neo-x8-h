@@ -1,0 +1,174 @@
+[img width=300]{YOUR COMPUTER IMAGE URL}[/img]
+
+[b]Host: with Debian 13 (exported from [url=https://linux-hardware.org/?probe=b0fe3962c8]Linux-Hardware.org[/url])[/b]
+
+[url=https://linux-hardware.org/?probe=b0fe3962c8]PROBE ID[/url]
+
+{TELL THE STORY ABOUT YOUR COMPUTER HERE}
+
+Devices on the board are the following:
+
+[table][tr][td][b]DEVICE[/b][/td]
+[td][b]STATUS[/b][/td]
+[td][b]COMMENT[/b][/td]
+[/tr]
+[tr][td]BUS: USB
+ID: 0bda:8176
+CLASS: ff-ff-ff
+VENDOR: Realtek Semiconductor Corp.
+DEVICE: [b]RTL8188CUS 802.11n WLAN Adapter[/b]
+TYPE: network
+DRIVER: rtl8192cu, rtl8xxxu
+[/td]
+[td]
+Detected
+[/td]
+[td]
+
+[/td]
+[/tr]
+[tr][td]BUS: USB
+ID: 05e3:0610
+CLASS: 09-00-01
+VENDOR: Genesys Logic, Inc.
+DEVICE: [b]Hub[/b]
+TYPE: hub
+DRIVER: hub
+[/td]
+[td]
+Detected
+[/td]
+[td]
+
+[/td]
+[/tr]
+[tr][td]BUS: USB
+ID: 1d6b:0002 (2x)
+CLASS: 09-00-00
+VENDOR: Linux Foundation
+DEVICE: [b]2.0 root hub[/b]
+TYPE: hub
+DRIVER: hub
+[/td]
+[td]
+Detected
+[/td]
+[td]
+
+[/td]
+[/tr]
+[tr][td]BUS: USB
+ID: 046d:c534
+CLASS: 03-01-01
+VENDOR: Logitech, Inc.
+DEVICE: [b]Unifying Receiver[/b]
+TYPE: mouse
+DRIVER: usbhid
+[/td]
+[td]
+Detected
+[/td]
+[td]
+
+[/td]
+[/tr]
+[tr][td]BUS: EISA
+ID: goldstar-gsm59f1
+VENDOR: Goldstar
+DEVICE: [b]LG ULTRAWIDE[/b]
+TYPE: monitor
+DRIVER: -
+[/td]
+[td]
+Works
+[/td]
+[td]
+
+[/td]
+[/tr]
+[tr][td]BUS: SYS
+ID: arm-4-1-0-amlogic-meson-platform (4x)
+VENDOR: ARM
+DEVICE: [b]Amlogic Meson platform Processor[/b]
+TYPE: cpu
+DRIVER: -
+[/td]
+[td]
+Works
+[/td]
+[td]
+
+[/td]
+[/tr]
+[tr][td]BUS: SYS
+ID: ram-modules-2gb-dimm
+VENDOR: 
+DEVICE: [b]RAM Module(s) 2GB DIMM[/b]
+TYPE: memory
+DRIVER: -
+[/td]
+[td]
+Works
+[/td]
+[td]
+
+[/td]
+[/tr]
+[tr][td]BUS: INT
+ID: 6015-0001-sd-controller-1
+VENDOR: 
+DEVICE: [b]SD Controller 1[/b]
+TYPE: mmc controller
+DRIVER: mmcblk
+[/td]
+[td]
+Detected
+[/td]
+[td]
+
+[/td]
+[/tr]
+[tr][td]BUS: INT
+ID: 6015-0002-sdio-controller-0
+VENDOR: 
+DEVICE: [b]SDIO Controller 0[/b]
+TYPE: mmc controller
+DRIVER: -
+[/td]
+[td]
+Detected
+[/td]
+[td]
+
+[/td]
+[/tr]
+[tr][td]BUS: SDIO
+ID: 02d0-4330
+CLASS: 00
+VENDOR: 
+DEVICE: [b][/b]
+TYPE: network
+DRIVER: -
+[/td]
+[td]
+Failed
+[/td]
+[td]
+
+[/td]
+[/tr]
+[tr][td]BUS: MMC
+ID: se32g-32gb [C4C]
+VENDOR: 
+DEVICE: [b]SE32G  32GB[/b]
+TYPE: disk
+DRIVER: meson_mx_sdio, mmcblk
+[/td]
+[td]
+Detected
+[/td]
+[td]
+
+[/td]
+[/tr]
+[/table]
