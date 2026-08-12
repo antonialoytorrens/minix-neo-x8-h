@@ -6,10 +6,10 @@ due to unrelated additions elsewhere in stmmac_main.c.
 
 --- a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
 +++ b/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
-@@ -64,6 +64,12 @@
+@@ -63,6 +63,12 @@
  #define	STMMAC_ALIGN(x)		ALIGN(ALIGN(x, SMP_CACHE_BYTES), 16)
  #define	TSO_MAX_BUFF_SIZE	(SZ_16K - 1)
-
+ 
 +/* hack to set the mac addr on the kernel cmdline */
 +#define MAC_ADDR_LEN                    (6)
 +static char *macaddr = ":";
@@ -19,10 +19,10 @@ due to unrelated additions elsewhere in stmmac_main.c.
  /* Module parameters */
  #define TX_TIMEO	5000
  static int watchdog = TX_TIMEO;
-@@ -3102,6 +3108,49 @@ static int stmmac_get_hw_features(struct stmmac_priv *priv)
+@@ -2995,6 +3001,49 @@ static int stmmac_get_hw_features(struct
  	return stmmac_get_hw_feature(priv, priv->ioaddr, &priv->dma_cap) == 0;
  }
-
+ 
 +/* Check the macaddr module parameter for a MAC address */
 +static int stmmac_is_macaddr_param(struct stmmac_priv *priv)
 +{
@@ -69,7 +69,7 @@ due to unrelated additions elsewhere in stmmac_main.c.
  /**
   * stmmac_check_ether_addr - check if the MAC addr is valid
   * @priv: driver private structure
-@@ -3118,7 +3167,8 @@ static void stmmac_check_ether_addr(struct stmmac_priv *priv)
+@@ -3011,7 +3060,8 @@ static void stmmac_check_ether_addr(stru
  		if (is_valid_ether_addr(addr))
  			eth_hw_addr_set(priv->dev, addr);
  		else

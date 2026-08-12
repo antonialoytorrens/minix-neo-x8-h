@@ -12,11 +12,9 @@ Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
  drivers/net/wireless/realtek/rtw88/sdio.h |  7 ++----
  2 files changed, 8 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/net/wireless/realtek/rtw88/sdio.c b/drivers/net/wireless/realtek/rtw88/sdio.c
-index 99d7c629eac6fb..c74cf94f3c901b 100644
 --- a/drivers/net/wireless/realtek/rtw88/sdio.c
 +++ b/drivers/net/wireless/realtek/rtw88/sdio.c
-@@ -675,6 +675,7 @@ static void rtw_sdio_init(struct rtw_dev *rtwdev)
+@@ -677,6 +677,7 @@ static void rtw_sdio_init(struct rtw_dev
  {
  	struct rtw_sdio *rtwsdio = (struct rtw_sdio *)rtwdev->priv;
  
@@ -24,7 +22,7 @@ index 99d7c629eac6fb..c74cf94f3c901b 100644
  	rtwsdio->irq_mask = REG_SDIO_HIMR_RX_REQUEST | REG_SDIO_HIMR_CPWM1;
  }
  
-@@ -813,7 +814,7 @@ static void rtw_sdio_tx_kick_off(struct rtw_dev *rtwdev)
+@@ -815,7 +816,7 @@ static void rtw_sdio_tx_kick_off(struct
  {
  	struct rtw_sdio *rtwsdio = (struct rtw_sdio *)rtwdev->priv;
  
@@ -33,7 +31,7 @@ index 99d7c629eac6fb..c74cf94f3c901b 100644
  }
  
  static void rtw_sdio_link_ps(struct rtw_dev *rtwdev, bool enter)
-@@ -1245,15 +1246,10 @@ static void rtw_sdio_process_tx_queue(struct rtw_dev *rtwdev,
+@@ -1247,15 +1248,10 @@ static void rtw_sdio_process_tx_queue(st
  
  static void rtw_sdio_tx_handler(struct work_struct *work)
  {
@@ -51,7 +49,7 @@ index 99d7c629eac6fb..c74cf94f3c901b 100644
  	if (!rtw_fw_feature_check(&rtwdev->fw, FW_FEATURE_TX_WAKE))
  		rtw_sdio_deep_ps_leave(rtwdev);
  
-@@ -1286,21 +1282,12 @@ static int rtw_sdio_init_tx(struct rtw_dev *rtwdev)
+@@ -1288,21 +1284,12 @@ static int rtw_sdio_init_tx(struct rtw_d
  		return -ENOMEM;
  	}
  
@@ -75,7 +73,7 @@ index 99d7c629eac6fb..c74cf94f3c901b 100644
  }
  
  static void rtw_sdio_deinit_tx(struct rtw_dev *rtwdev)
-@@ -1309,7 +1296,6 @@ static void rtw_sdio_deinit_tx(struct rtw_dev *rtwdev)
+@@ -1311,7 +1298,6 @@ static void rtw_sdio_deinit_tx(struct rt
  	int i;
  
  	destroy_workqueue(rtwsdio->txwq);
@@ -83,8 +81,6 @@ index 99d7c629eac6fb..c74cf94f3c901b 100644
  
  	for (i = 0; i < RTK_MAX_TX_QUEUE_NUM; i++)
  		ieee80211_purge_tx_queue(rtwdev->hw, &rtwsdio->tx_queue[i]);
-diff --git a/drivers/net/wireless/realtek/rtw88/sdio.h b/drivers/net/wireless/realtek/rtw88/sdio.h
-index 3c659ed180f008..fe114e3fd44e7c 100644
 --- a/drivers/net/wireless/realtek/rtw88/sdio.h
 +++ b/drivers/net/wireless/realtek/rtw88/sdio.h
 @@ -142,12 +142,9 @@ struct rtw_sdio_tx_data {
@@ -110,4 +106,3 @@ index 3c659ed180f008..fe114e3fd44e7c 100644
  	struct sk_buff_head tx_queue[RTK_MAX_TX_QUEUE_NUM];
  };
  
-

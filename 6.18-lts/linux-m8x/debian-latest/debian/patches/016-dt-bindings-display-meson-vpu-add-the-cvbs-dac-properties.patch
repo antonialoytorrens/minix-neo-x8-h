@@ -14,11 +14,9 @@ Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
  .../bindings/display/amlogic,meson-vpu.yaml          | 12 ++++++++++++
  1 file changed, 12 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml b/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
-index 3ae45db85ea793..1a2d69bca56382 100644
 --- a/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
 +++ b/Documentation/devicetree/bindings/display/amlogic,meson-vpu.yaml
-@@ -81,6 +81,15 @@ properties:
+@@ -82,6 +82,15 @@ properties:
      description: should point to a canvas provider node
      $ref: /schemas/types.yaml#/definitions/phandle
  
@@ -34,7 +32,7 @@ index 3ae45db85ea793..1a2d69bca56382 100644
    power-domains:
      maxItems: 1
      description: phandle to the associated power domain
-@@ -129,6 +138,9 @@ examples:
+@@ -130,6 +139,9 @@ examples:
          #size-cells = <0>;
          amlogic,canvas = <&canvas>;
  
@@ -44,4 +42,3 @@ index 3ae45db85ea793..1a2d69bca56382 100644
          /* CVBS VDAC output port */
          port@0 {
              reg = <0>;
-

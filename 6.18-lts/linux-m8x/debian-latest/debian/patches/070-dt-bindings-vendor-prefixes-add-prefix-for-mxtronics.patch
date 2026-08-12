@@ -18,11 +18,9 @@ Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
  Documentation/devicetree/bindings/vendor-prefixes.yaml | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/vendor-prefixes.yaml b/Documentation/devicetree/bindings/vendor-prefixes.yaml
-index c7591b2aec2a74..57fb871f76f5ca 100644
 --- a/Documentation/devicetree/bindings/vendor-prefixes.yaml
 +++ b/Documentation/devicetree/bindings/vendor-prefixes.yaml
-@@ -1102,6 +1102,8 @@ patternProperties:
+@@ -1088,6 +1088,8 @@ patternProperties:
      deprecated: true
    "^mxicy,.*":
      description: Macronix International Co., Ltd.
@@ -31,4 +29,3 @@ index c7591b2aec2a74..57fb871f76f5ca 100644
    "^myir,.*":
      description: MYIR Tech Limited
    "^national,.*":
-

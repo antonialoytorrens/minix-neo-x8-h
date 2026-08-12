@@ -22,11 +22,9 @@ Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
  drivers/gpu/drm/meson/meson_plane.c | 33 ++++++++++++++++++++++++-----
  1 file changed, 28 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/gpu/drm/meson/meson_plane.c b/drivers/gpu/drm/meson/meson_plane.c
-index f8d0e0874a5d67..3f422ae45ae8c4 100644
 --- a/drivers/gpu/drm/meson/meson_plane.c
 +++ b/drivers/gpu/drm/meson/meson_plane.c
-@@ -472,7 +472,20 @@ static const struct drm_plane_funcs meson_plane_funcs = {
+@@ -471,7 +471,20 @@ static const struct drm_plane_funcs meso
  	.format_mod_supported   = meson_plane_format_mod_supported,
  };
  
@@ -48,7 +46,7 @@ index f8d0e0874a5d67..3f422ae45ae8c4 100644
  	DRM_FORMAT_ARGB8888,
  	DRM_FORMAT_ABGR8888,
  	DRM_FORMAT_XRGB8888,
-@@ -534,6 +547,8 @@ int meson_plane_create(struct meson_drm *priv)
+@@ -533,6 +546,8 @@ int meson_plane_create(struct meson_drm
  {
  	struct meson_plane *meson_plane;
  	struct drm_plane *plane;
@@ -57,7 +55,7 @@ index f8d0e0874a5d67..3f422ae45ae8c4 100644
  	const uint64_t *format_modifiers = format_modifiers_default;
  	int ret;
  
-@@ -550,11 +565,19 @@ int meson_plane_create(struct meson_drm *priv)
+@@ -549,11 +564,19 @@ int meson_plane_create(struct meson_drm
  	else if (meson_vpu_is_compatible(priv, VPU_COMPATIBLE_G12A))
  		format_modifiers = format_modifiers_afbc_g12a;
  
@@ -81,4 +79,3 @@ index f8d0e0874a5d67..3f422ae45ae8c4 100644
  					DRM_PLANE_TYPE_PRIMARY, "meson_primary_plane");
  	if (ret) {
  		devm_kfree(priv->drm->dev, meson_plane);
-

@@ -25,8 +25,6 @@ Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
  4 files changed, 317 insertions(+)
  create mode 100644 drivers/usb/host/xhci-pci-etron.c
 
-diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
-index c4f17ce5c77b15..00e47d08f9fe93 100644
 --- a/drivers/usb/host/Kconfig
 +++ b/drivers/usb/host/Kconfig
 @@ -42,6 +42,11 @@ config USB_XHCI_PCI
@@ -41,8 +39,6 @@ index c4f17ce5c77b15..00e47d08f9fe93 100644
  config USB_XHCI_PCI_RENESAS
  	tristate "Support for additional Renesas xHCI controller with firmware"
  	depends on USB_XHCI_PCI
-diff --git a/drivers/usb/host/Makefile b/drivers/usb/host/Makefile
-index 4df946c05ba0ee..86e76b45ee7b0c 100644
 --- a/drivers/usb/host/Makefile
 +++ b/drivers/usb/host/Makefile
 @@ -72,6 +72,7 @@ obj-$(CONFIG_USB_UHCI_HCD)	+= uhci-hcd.o
@@ -53,9 +49,6 @@ index 4df946c05ba0ee..86e76b45ee7b0c 100644
  obj-$(CONFIG_USB_XHCI_PCI_RENESAS)	+= xhci-pci-renesas.o
  obj-$(CONFIG_USB_XHCI_PLATFORM) += xhci-plat-hcd.o
  obj-$(CONFIG_USB_XHCI_HISTB)	+= xhci-histb.o
-diff --git a/drivers/usb/host/xhci-pci-etron.c b/drivers/usb/host/xhci-pci-etron.c
-new file mode 100644
-index 00000000000000..43be571a0d58ee
 --- /dev/null
 +++ b/drivers/usb/host/xhci-pci-etron.c
 @@ -0,0 +1,308 @@
@@ -367,11 +360,9 @@ index 00000000000000..43be571a0d58ee
 +MODULE_DESCRIPTION("Etron EJ168/EJ188/EJ198 xHCI PCI Host Controller Driver");
 +MODULE_IMPORT_NS("xhci");
 +MODULE_LICENSE("GPL v2");
-diff --git a/drivers/usb/host/xhci-pci.c b/drivers/usb/host/xhci-pci.c
-index 14eb95a8e75aec..bae33ac521f263 100644
 --- a/drivers/usb/host/xhci-pci.c
 +++ b/drivers/usb/host/xhci-pci.c
-@@ -689,6 +689,9 @@ EXPORT_SYMBOL_NS_GPL(xhci_pci_common_probe, "xhci");
+@@ -690,6 +690,9 @@ EXPORT_SYMBOL_NS_GPL(xhci_pci_common_pro
  static const struct pci_device_id pci_ids_renesas[] = {
  	{ PCI_DEVICE(PCI_VENDOR_ID_RENESAS, 0x0014) },
  	{ PCI_DEVICE(PCI_VENDOR_ID_RENESAS, 0x0015) },
@@ -381,4 +372,3 @@ index 14eb95a8e75aec..bae33ac521f263 100644
  	{ /* end: all zeroes */ }
  };
  
-

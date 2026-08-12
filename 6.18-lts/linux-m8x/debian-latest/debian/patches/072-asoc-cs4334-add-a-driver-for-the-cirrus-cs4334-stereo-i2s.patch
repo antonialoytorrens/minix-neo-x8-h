@@ -25,8 +25,6 @@ Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
  3 files changed, 204 insertions(+)
  create mode 100644 sound/soc/codecs/cs4334.c
 
-diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
-index 061791e6190742..79cc7ed80aaeb8 100644
 --- a/sound/soc/codecs/Kconfig
 +++ b/sound/soc/codecs/Kconfig
 @@ -95,6 +95,7 @@ config SND_SOC_ALL_CODECS
@@ -37,7 +35,7 @@ index 061791e6190742..79cc7ed80aaeb8 100644
  	imply SND_SOC_CS4341
  	imply SND_SOC_CS4349
  	imply SND_SOC_CS47L15
-@@ -1055,6 +1056,9 @@ config SND_SOC_CS43130
+@@ -1023,6 +1024,9 @@ config SND_SOC_CS43130
  	tristate "Cirrus Logic CS43130 CODEC"
  	depends on I2C
  
@@ -47,8 +45,6 @@ index 061791e6190742..79cc7ed80aaeb8 100644
  config SND_SOC_CS4341
  	tristate "Cirrus Logic CS4341 CODEC"
  	depends on SND_SOC_I2C_AND_SPI
-diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
-index d687d4f743639b..d555fc9944734c 100644
 --- a/sound/soc/codecs/Makefile
 +++ b/sound/soc/codecs/Makefile
 @@ -103,6 +103,7 @@ snd-soc-cs4271-spi-y := cs4271-spi.o
@@ -59,7 +55,7 @@ index d687d4f743639b..d555fc9944734c 100644
  snd-soc-cs4341-y := cs4341.o
  snd-soc-cs4349-y := cs4349.o
  snd-soc-cs47l15-y := cs47l15.o
-@@ -419,6 +420,7 @@ snd-soc-wsa881x-y := wsa881x.o
+@@ -418,6 +419,7 @@ snd-soc-wsa881x-y := wsa881x.o
  snd-soc-wsa883x-y := wsa883x.o
  snd-soc-wsa884x-y := wsa884x.o
  snd-soc-zl38060-y := zl38060.o
@@ -67,7 +63,7 @@ index d687d4f743639b..d555fc9944734c 100644
  # Amp
  snd-soc-max9877-y := max9877.o
  snd-soc-max98504-y := max98504.o
-@@ -536,6 +538,7 @@ obj-$(CONFIG_SND_SOC_CS4271_SPI)	+= snd-soc-cs4271-spi.o
+@@ -535,6 +537,7 @@ obj-$(CONFIG_SND_SOC_CS4271_SPI)	+= snd-
  obj-$(CONFIG_SND_SOC_CS42XX8)	+= snd-soc-cs42xx8.o
  obj-$(CONFIG_SND_SOC_CS42XX8_I2C) += snd-soc-cs42xx8-i2c.o
  obj-$(CONFIG_SND_SOC_CS43130)   += snd-soc-cs43130.o
@@ -75,9 +71,6 @@ index d687d4f743639b..d555fc9944734c 100644
  obj-$(CONFIG_SND_SOC_CS4341)	+= snd-soc-cs4341.o
  obj-$(CONFIG_SND_SOC_CS4349)	+= snd-soc-cs4349.o
  obj-$(CONFIG_SND_SOC_CS47L24)	+= snd-soc-cs47l24.o
-diff --git a/sound/soc/codecs/cs4334.c b/sound/soc/codecs/cs4334.c
-new file mode 100644
-index 00000000000000..7f0c1abe7279c5
 --- /dev/null
 +++ b/sound/soc/codecs/cs4334.c
 @@ -0,0 +1,197 @@
@@ -278,4 +271,3 @@ index 00000000000000..7f0c1abe7279c5
 +MODULE_DESCRIPTION("ASoC Cirrus CS4334 codec driver");
 +MODULE_AUTHOR("Martin Blumenstingl <martin.blumenstingl@googlemail.com>");
 +MODULE_LICENSE("GPL v2");
-

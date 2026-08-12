@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu -o pipefail
 
-KERNEL_VERSION="6.18.40"
+KERNEL_VERSION="6.18.44"
 
 cd "$(dirname $0)"
 if [ ! -f "linux-${KERNEL_VERSION}.tar.xz" ]; then
