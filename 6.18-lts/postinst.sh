@@ -14,8 +14,8 @@ set -eu -o pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DTS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 PKG_DIR="$SCRIPT_DIR/pkg"
-BOOTPART="/media/$(whoami)/BOOTPART"
-ROOTPART="/media/$(whoami)/rootpart"
+BOOTPART="/media/$(whoami)/BOOT"
+ROOTPART="/media/$(whoami)/ROOT"
 TEMPLATE_DIR="$DTS_DIR/boot/template"
 
 asroot() {
@@ -104,10 +104,17 @@ asroot mount --bind /dev/pts "$ROOTPART/dev/pts"
 asroot mount -t proc proc "$ROOTPART/proc"
 asroot mount -t sysfs sysfs "$ROOTPART/sys"
 
-if [ -f "$BOOTPART/initrd.img-$KVER" ]; then
-    asroot chroot "$ROOTPART" update-initramfs -u -k "$KVER"
+if asroot chroot "$ROOTPART" sh -c 'command -v update-initramfs' >/dev/null 2>&1; then
+    if [ -f "$BOOTPART/initrd.img-$KVER" ]; then
+        asroot chroot "$ROOTPART" update-initramfs -u -k "$KVER"
+    else
+        asroot chroot "$ROOTPART" update-initramfs -c -k "$KVER"
+    fi
+elif asroot chroot "$ROOTPART" sh -c 'command -v dracut' >/dev/null 2>&1; then
+    asroot chroot "$ROOTPART" dracut --force "/boot/initrd.img-$KVER" "$KVER"
 else
-    asroot chroot "$ROOTPART" update-initramfs -c -k "$KVER"
+    echo "Neither update-initramfs nor dracut found in $ROOTPART" >&2
+    exit 1
 fi
 
 cleanup_chroot
