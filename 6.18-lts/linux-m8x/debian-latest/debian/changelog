@@ -1,3 +1,10 @@
+linux-m8x (6.18.44-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Antoni Aloy Torrens <aaloytorrens@gmail.com>  Fri, 14 Aug 2026 00:26:00 +0200
+
+
 linux-m8x (6.18.38-1) unstable; urgency=low
 
   * New upstream release.
