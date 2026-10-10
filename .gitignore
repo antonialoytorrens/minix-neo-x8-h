@@ -2,3 +2,4 @@ pkg
 linux-*.tar.xz
 linux-*
 !linux-m8x
+.env
